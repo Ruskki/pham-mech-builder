@@ -1,0 +1,156 @@
+.root-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 300px;
+}
+
+.root-add-btn {
+  font-size: 1.2rem !important;
+  padding: 1rem 2.5rem !important;
+  border-radius: 10px !important;
+}
+
+.tree-node {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.comp-card {
+  background: #16213e;
+  border: 1px solid #0f3460;
+  border-left: 4px solid #4fc3f7;
+  border-radius: 6px;
+  overflow: hidden;
+  transition: 0.15s;
+}
+
+.comp-card:hover {
+  border-color: #e94560;
+}
+
+.comp-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.7rem;
+  background: rgba(0,0,0,0.15);
+}
+
+.collapse-arrow {
+  font-size: 0.7rem;
+  width: 1rem;
+  color: #667788;
+  user-select: none;
+}
+
+.comp-cat-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 0.15rem 0.45rem;
+  border-radius: 3px;
+  color: #111;
+  letter-spacing: 0.05em;
+}
+
+.comp-name {
+  flex: 1;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.remove-btn {
+  background: transparent;
+  border: none;
+  color: #667788;
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 0.15rem 0.3rem;
+  border-radius: 3px;
+  transition: 0.1s;
+}
+
+.remove-btn:hover {
+  color: #ef5350;
+  background: rgba(239,83,80,0.15);
+}
+
+.comp-card-body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.7rem;
+  padding: 0.5rem 0.7rem;
+  font-size: 0.78rem;
+}
+
+.comp-stat {
+  color: #8899aa;
+  white-space: nowrap;
+}
+
+.comp-desc {
+  width: 100%;
+  margin: 0.2rem 0 0;
+  color: #667788;
+  font-style: italic;
+  font-size: 0.78rem;
+}
+
+.slots-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding-left: 1.5rem;
+  border-left: 2px solid #0f3460;
+  margin-left: 0.5rem;
+}
+
+.slot-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.25rem 0;
+  border-radius: 4px;
+  transition: 0.15s;
+}
+
+.slot-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.slot-label {
+  font-size: 0.72rem;
+  color: #667788;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.slot-connector {
+  flex: 1;
+  height: 1px;
+  background: #0f3460;
+}
+
+.slot-add-btn {
+  background: #0f3460;
+  border: 1px dashed #1a3a6e;
+  color: #8899aa;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 700;
+  transition: 0.15s;
+}
+
+.slot-add-btn:hover {
+  background: #1a3a6e;
+  border-color: #e94560;
+  color: #e94560;
+}

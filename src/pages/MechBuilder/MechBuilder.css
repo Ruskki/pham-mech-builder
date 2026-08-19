@@ -1,0 +1,96 @@
+.mech-builder {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+.builder-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.4rem 1.5rem;
+  background: #1a1a2e;
+  border-bottom: 1px solid #0f3460;
+}
+
+.bar-io {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.bar-btn {
+  background: transparent;
+  border: 1px solid #0f3460;
+  color: #667788;
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.1s;
+  font-family: inherit;
+}
+
+.bar-btn:hover:not(:disabled) {
+  border-color: #e94560;
+  color: #e0e0e0;
+}
+
+.bar-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.view-toggle {
+  display: flex;
+  gap: 0.25rem;
+  background: #0f3460;
+  border-radius: 6px;
+  padding: 2px;
+}
+
+.toggle-btn {
+  background: transparent;
+  border: none;
+  color: #8899aa;
+  padding: 0.25rem 0.75rem;
+  border-radius: 5px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: 0.15s;
+  font-weight: 500;
+}
+
+.toggle-btn.active {
+  background: #e94560;
+  color: #fff;
+}
+
+.builder-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.main-area {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.view-container {
+  flex: 1;
+  width: 100%;
+}
+
+.view-tree {
+  overflow-y: auto;
+  padding: 1.5rem;
+}
+
+.view-graph {
+  overflow: hidden;
+}
