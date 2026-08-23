@@ -67,6 +67,17 @@ function sumMods(node: ComponentNode | null, modKey: string): number {
   return total;
 }
 
+function sumTotalHp(node: ComponentNode | null, conModifier: number): number {
+  if (!node) return 0;
+  const comp = node.component;
+  const totalHp = calcHp(conModifier, comp.healthDivisor);
+  let sum = totalHp;
+  for (const child of node.children) {
+    if (child) sum += sumTotalHp(child, conModifier);
+  }
+  return sum;
+}
+
 function calcModifier(total: number): number {
   return Math.floor((total - 10) / 2);
 }
@@ -158,6 +169,8 @@ export function CharacterSheet({ mechRoot }: CharacterSheetProps) {
 
   const conModifier = useMemo(() => calcModifier(totals.con?.total ?? 0), [totals]);
 
+  const totalMechHp = useMemo(() => sumTotalHp(mechRoot, conModifier), [mechRoot, conModifier]);
+
   const setHp = useCallback((nodeId: string, value: number) => {
     setHpMap(prev => ({ ...prev, [nodeId]: value }));
   }, []);
@@ -180,6 +193,13 @@ export function CharacterSheet({ mechRoot }: CharacterSheetProps) {
                 <span className="hr-total">Total</span>
               </div>
               <HealthRow node={mechRoot} conModifier={conModifier} hpMap={hpMap} onSetHp={setHp} />
+              <div className="health-row health-total-row">
+                <span className="hr-name">Total</span>
+                <span className="hr-type" />
+                <span className="hr-div" />
+                <span className="hr-current" />
+                <span className="hr-total">{totalMechHp}</span>
+              </div>
             </div>
           )}
         </div>

@@ -104,6 +104,15 @@ export function App() {
             </button>
           ))}
         </div>
+        <button
+          className="app-shutdown"
+          title="Stop the server"
+          onClick={() => {
+            fetch('/api/shutdown', { method: 'POST' });
+          }}
+        >
+          Shutdown
+        </button>
       </nav>
       <div className="app-page">
         {page === 'creator' && (
