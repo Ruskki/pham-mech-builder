@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useMemo } from 'react';
-import type { MechComponent, ComponentNode, PremadeData, StoredBuild } from '../../types';
+import type { MechComponent, ComponentNode, PremadeData, StoredBuild, ScaleType, ScaleModifiers } from '../../types';
 import { createNode, addToSlot, removeById, buildPremadeLib, expandTree, compactTree, collectCustomIds, premadeToComponent } from '../../types';
 import { SidePanel } from './SidePanel';
 import { MechTree, RootSlot } from './MechTree';
@@ -12,6 +12,10 @@ interface MechBuilderProps {
   customComponents: PremadeData[];
   mechRoot: ComponentNode | null;
   onMechRootChange: (root: ComponentNode | null) => void;
+  scale: ScaleType;
+  setScale: (scale: ScaleType) => void;
+  scaleMods: Record<ScaleType, ScaleModifiers>;
+  setScaleMods: (mods: Record<ScaleType, ScaleModifiers>) => void;
 }
 
 type SlotTarget = { parentId: string | null; slotIndex: number | null }; 
@@ -25,7 +29,7 @@ function sumComponentPoints(node: ComponentNode | null): number {
   return t;
 }
 
-export function MechBuilder({ customComponents, mechRoot: rootNode, onMechRootChange: setRootNode }: MechBuilderProps) {
+export function MechBuilder({ customComponents, mechRoot: rootNode, onMechRootChange: setRootNode, scale, setScale, scaleMods, setScaleMods }: MechBuilderProps) {
   const [pickingTarget, setPickingTarget] = useState<SlotTarget | null>(null);
   const [viewMode, setViewMode] = useState<'tree' | 'graph'>('tree');
   const importRef = useRef<HTMLInputElement>(null);
@@ -175,7 +179,7 @@ export function MechBuilder({ customComponents, mechRoot: rootNode, onMechRootCh
           </div>
         </main>
 
-        <SidePanel componentPoints={componentPoints} mechRoot={rootNode} />
+        <SidePanel componentPoints={componentPoints} mechRoot={rootNode} scale={scale} setScale={setScale} scaleMods={scaleMods} setScaleMods={setScaleMods} />
       </div>
 
       {pickingTarget && (

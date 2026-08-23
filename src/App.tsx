@@ -1,10 +1,11 @@
 import { useState, useCallback, useEffect } from 'react';
-import type { ComponentNode, PremadeData, StoredBuild } from './types';
+import type { ComponentNode, PremadeData, StoredBuild, ScaleType, ScaleModifiers } from './types';
 import { buildPremadeLib, compactTree, expandTree, premadeToComponent } from './types';
 import { MechBuilder } from './pages/MechBuilder/MechBuilder';
 import { ComponentCreator } from './pages/ComponentCreator/ComponentCreator';
 import { CharacterSheet } from './pages/CharacterSheet/CharacterSheet';
 import allComponents from './data/components.json';
+import { DEFAULT_SCALE_MODIFIERS } from './pages/MechBuilder/SidePanel';
 import './index.css';
 import './App.css';
 
@@ -67,6 +68,10 @@ export function App() {
   const [page, setPage] = useState<Page>('builder');
   const [customComponents, setCustomComponents] = useState<PremadeData[]>(() => loadJSON(CUSTOM_KEY, []));
   const [mechRoot, setMechRoot] = useState<ComponentNode | null>(() => loadMech());
+  const [scale, setScale] = useState<ScaleType>('HG');
+  const [scaleMods, setScaleMods] = useState<Record<ScaleType, ScaleModifiers>>(() =>
+    JSON.parse(JSON.stringify(DEFAULT_SCALE_MODIFIERS))
+  );
 
   useEffect(() => {
     localStorage.setItem(CUSTOM_KEY, JSON.stringify(customComponents));
@@ -128,10 +133,14 @@ export function App() {
             customComponents={customComponents}
             mechRoot={mechRoot}
             onMechRootChange={setMechRoot}
+            scale={scale}
+            setScale={setScale}
+            scaleMods={scaleMods}
+            setScaleMods={setScaleMods}
           />
         )}
         {page === 'sheet' && (
-          <CharacterSheet mechRoot={mechRoot} />
+          <CharacterSheet mechRoot={mechRoot} scale={scale} scaleMods={scaleMods} />
         )}
       </div>
     </div>

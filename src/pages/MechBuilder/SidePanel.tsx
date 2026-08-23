@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import type { ComponentNode } from '../../types';
+import type { ComponentNode, ScaleType, ScaleModifiers } from '../../types';
 import './SidePanel.css';
 
 interface ArchetypeOption {
@@ -19,7 +19,14 @@ const ARCHETYPES: ArchetypeOption[] = [
 const SD_MODELS = ['Beacon', 'Kilo-ton', 'Black Flash', 'Ex-calibur'];
 const STD_MODELS = ['Prototype', 'Mass Production', 'Biotype'];
 
-const SCALES = ['SD', 'HG', 'MG', 'PG'];
+const SCALES: ScaleType[] = ['SD', 'HG', 'MG', 'PG'];
+
+export const DEFAULT_SCALE_MODIFIERS: Record<ScaleType, ScaleModifiers> = {
+  SD: { dexMod: 2, strMod: -2, conMod: -1, radMod: 1, movement: 5 },
+  HG: {},
+  MG: { strMod: 2, conMod: 1, dexMod: -1, weight: 10 },
+  PG: { strMod: 3, conMod: 2, dexMod: -2, radMod: -1, weight: 25, movement: -5, healthMod: 100 },
+};
 
 const MAIN_STATS = [
   { label: 'Dexterity', key: 'dex' },
@@ -77,28 +84,33 @@ function calcModifier(total: number): number {
 interface SidePanelProps {
   componentPoints?: number;
   mechRoot?: ComponentNode | null;
+  scale: ScaleType;
+  setScale: (scale: ScaleType) => void;
+  scaleMods: Record<ScaleType, ScaleModifiers>;
+  setScaleMods: (mods: Record<ScaleType, ScaleModifiers>) => void;
 }
 
-export function SidePanel({ componentPoints = 0, mechRoot = null }: SidePanelProps) {
+export function SidePanel({ componentPoints = 0, mechRoot = null, scale, setScale, scaleMods, setScaleMods }: SidePanelProps) {
   const [bases, setBases] = useState<StatBases>(loadBases);
   const [selected, setSelected] = useState<Set<string>>(new Set(['Striker']));
   const [spec, setSpec] = useState<string | null>('Striker');
-  const [scale, setScale] = useState('HG');
   const [model, setModel] = useState('Prototype');
 
   useEffect(() => {
     localStorage.setItem(STATS_STORAGE_KEY, JSON.stringify(bases));
   }, [bases]);
 
+  const currentScaleMods = scaleMods[scale] ?? {};
+
   const totals = useMemo(() => {
     const t: Record<string, { mod: number; total: number }> = {};
     for (const s of MAIN_STATS) {
-      const mod = sumMods(mechRoot, s.key + 'Mod');
+      const mod = sumMods(mechRoot, s.key + 'Mod') + (currentScaleMods[s.key + 'Mod' as keyof ScaleModifiers] as number ?? 0);
       const base = bases[s.key] ?? 0;
       t[s.key] = { mod, total: base + mod };
     }
     return t;
-  }, [bases, mechRoot]);
+  }, [bases, mechRoot, scale, currentScaleMods]);
 
   function mainStatTotal(key: string): number {
     return totals[key]?.total ?? 0;
@@ -169,7 +181,7 @@ export function SidePanel({ componentPoints = 0, mechRoot = null }: SidePanelPro
           <div className="panel-stat-divider" />
           {DERIVED_STATS.map(s => {
             const srcMod = s.from.reduce((acc, k) => acc + calcModifier(mainStatTotal(k)), 0);
-            const bonus = sumMods(mechRoot, s.modKey);
+            const bonus = sumMods(mechRoot, s.modKey) + (currentScaleMods[s.modKey as keyof ScaleModifiers] as number ?? 0);
             const total = srcMod + bonus;
             return (
               <div key={s.key} className="panel-stat-row">
@@ -192,7 +204,7 @@ export function SidePanel({ componentPoints = 0, mechRoot = null }: SidePanelPro
         <div className="meta-group-label">Equipment</div>
         <div className="panel-stats">
           {EQUIP_STATS.map(e => {
-            const val = sumMods(mechRoot, e.modKey);
+            const val = sumMods(mechRoot, e.modKey) + (currentScaleMods[e.modKey as keyof ScaleModifiers] as number ?? 0);
             return (
               <div key={e.key} className="panel-stat-row">
                 <span className="panel-stat-label">{e.label}</span>
@@ -245,6 +257,23 @@ export function SidePanel({ componentPoints = 0, mechRoot = null }: SidePanelPro
                 <span>{s}</span>
               </button>
             );
+          })}
+        </div>
+      </div>
+
+      <div className="meta-group">
+        <div className="meta-group-label">Scale Modifiers</div>
+        <div className="panel-stats">
+          {(Object.keys(currentScaleMods) as Array<keyof ScaleModifiers>).map(key => {
+            const val = currentScaleMods[key];
+            return val !== undefined && val !== 0 ? (
+              <div key={key} className="panel-stat-row" style={{ fontSize: '0.8rem' }}>
+                <span className="panel-stat-label" style={{ flex: 1 }}>{key.replace('Mod', '').replace(/([A-Z])/g, ' $1').trim()}</span>
+                <span className="panel-stat-total" style={{ width: 'auto', flex: 0, color: val > 0 ? '#4fc3f7' : '#ef5350' }}>
+                  {val > 0 ? '+' : ''}{val}
+                </span>
+              </div>
+            ) : null;
           })}
         </div>
       </div>

@@ -1,5 +1,21 @@
 export type ComponentCategory = 'core' | 'utility' | 'weapon';
 
+export type ScaleType = 'SD' | 'HG' | 'MG' | 'PG';
+
+export interface ScaleModifiers {
+  dexMod?: number;
+  strMod?: number;
+  conMod?: number;
+  radMod?: number;
+  acMod?: number;
+  acroMod?: number;
+  sigMod?: number;
+  rendMod?: number;
+  movement?: number;
+  weight?: number;
+  healthMod?: number;
+}
+
 export function normalizeStr(s: string): string {
   return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 }

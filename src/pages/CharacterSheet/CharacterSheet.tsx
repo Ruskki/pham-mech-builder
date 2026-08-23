@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import type { ComponentNode } from '../../types';
+import type { ComponentNode, ScaleType, ScaleModifiers } from '../../types';
 import './CharacterSheet.css';
 
 const STATS_STORAGE_KEY = 'pham-mech-builder-stats';
@@ -67,13 +67,13 @@ function sumMods(node: ComponentNode | null, modKey: string): number {
   return total;
 }
 
-function sumTotalHp(node: ComponentNode | null, conModifier: number): number {
+function sumTotalHp(node: ComponentNode | null, conModifier: number, healthMod: number): number {
   if (!node) return 0;
   const comp = node.component;
-  const totalHp = calcHp(conModifier, comp.healthDivisor);
+  const totalHp = calcHp(conModifier, comp.healthDivisor, healthMod);
   let sum = totalHp;
   for (const child of node.children) {
-    if (child) sum += sumTotalHp(child, conModifier);
+    if (child) sum += sumTotalHp(child, conModifier, healthMod);
   }
   return sum;
 }
@@ -82,20 +82,21 @@ function calcModifier(total: number): number {
   return Math.floor((total - 10) / 2);
 }
 
-function calcHp(conModifier: number, healthDivisor: number): number {
-  return Math.floor((100 + conModifier) / healthDivisor);
+function calcHp(conModifier: number, healthDivisor: number, healthMod: number): number {
+  return Math.floor((100 + conModifier + healthMod) / healthDivisor);
 }
 
 interface HealthRowProps {
   node: ComponentNode;
   conModifier: number;
+  healthMod: number;
   hpMap: Record<string, number>;
   onSetHp: (nodeId: string, value: number) => void;
 }
 
-function HealthRow({ node, conModifier, hpMap, onSetHp }: HealthRowProps) {
+function HealthRow({ node, conModifier, healthMod, hpMap, onSetHp }: HealthRowProps) {
   const comp = node.component;
-  const totalHp = useMemo(() => calcHp(conModifier, comp.healthDivisor), [conModifier, comp.healthDivisor]);
+  const totalHp = useMemo(() => calcHp(conModifier, comp.healthDivisor, healthMod), [conModifier, comp.healthDivisor, healthMod]);
   const currentHp = hpMap[node.id] ?? totalHp;
   const over = currentHp > totalHp;
   const color = CAT_COLORS[comp.category] ?? '#888';
@@ -119,26 +120,28 @@ function HealthRow({ node, conModifier, hpMap, onSetHp }: HealthRowProps) {
         </span>
         <span className={`hr-total ${over ? 'hr-over' : ''}`}>{totalHp}</span>
       </div>
-      {node.children.some(Boolean) && (
-        <div className="hr-children">
-          {node.children.map((child, idx) =>
-            child ? (
-              <div key={idx} className="hr-slot-group">
-                <HealthRow node={child} conModifier={conModifier} hpMap={hpMap} onSetHp={onSetHp} />
-              </div>
-            ) : null,
-          )}
-        </div>
-      )}
+          {node.children.some(Boolean) && (
+         <div className="hr-children">
+           {node.children.map((child, idx) =>
+             child ? (
+               <div key={idx} className="hr-slot-group">
+                 <HealthRow node={child} conModifier={conModifier} healthMod={healthMod} hpMap={hpMap} onSetHp={onSetHp} />
+               </div>
+             ) : null,
+           )}
+         </div>
+       )}
     </div>
   );
 }
 
 interface CharacterSheetProps {
   mechRoot: ComponentNode | null;
+  scale?: ScaleType;
+  scaleMods?: Record<ScaleType, ScaleModifiers>;
 }
 
-export function CharacterSheet({ mechRoot }: CharacterSheetProps) {
+export function CharacterSheet({ mechRoot, scale = 'HG', scaleMods = {} }: CharacterSheetProps) {
   const [bases, setBases] = useState<StatBases>(loadBases);
   const [hpMap, setHpMap] = useState<Record<string, number>>(loadHpMap);
 
@@ -153,15 +156,18 @@ export function CharacterSheet({ mechRoot }: CharacterSheetProps) {
     localStorage.setItem(HP_STORAGE_KEY, JSON.stringify(hpMap));
   }, [hpMap]);
 
+  const currentScaleMods = scaleMods[scale] ?? {};
+  const healthMod = (currentScaleMods.healthMod as number) ?? 0;
+
   const totals = useMemo(() => {
     const t: Record<string, { mod: number; total: number }> = {};
     for (const s of MAIN_STATS) {
-      const mod = sumMods(mechRoot, s.modKey);
+      const mod = sumMods(mechRoot, s.modKey) + (currentScaleMods[s.modKey as keyof ScaleModifiers] as number ?? 0);
       const base = bases[s.key] ?? 0;
       t[s.key] = { mod, total: base + mod };
     }
     return t;
-  }, [bases, mechRoot]);
+  }, [bases, mechRoot, scale, scaleMods]);
 
   function mainStatTotal(key: string): number {
     return totals[key]?.total ?? 0;
@@ -169,7 +175,7 @@ export function CharacterSheet({ mechRoot }: CharacterSheetProps) {
 
   const conModifier = useMemo(() => calcModifier(totals.con?.total ?? 0), [totals]);
 
-  const totalMechHp = useMemo(() => sumTotalHp(mechRoot, conModifier), [mechRoot, conModifier]);
+  const totalMechHp = useMemo(() => sumTotalHp(mechRoot, conModifier, healthMod), [mechRoot, conModifier, healthMod]);
 
   const setHp = useCallback((nodeId: string, value: number) => {
     setHpMap(prev => ({ ...prev, [nodeId]: value }));
@@ -192,7 +198,7 @@ export function CharacterSheet({ mechRoot }: CharacterSheetProps) {
                 <span className="hr-current">Current HP</span>
                 <span className="hr-total">Total</span>
               </div>
-              <HealthRow node={mechRoot} conModifier={conModifier} hpMap={hpMap} onSetHp={setHp} />
+              <HealthRow node={mechRoot} conModifier={conModifier} healthMod={healthMod} hpMap={hpMap} onSetHp={setHp} />
               <div className="health-row health-total-row">
                 <span className="hr-name">Total</span>
                 <span className="hr-type" />
@@ -232,7 +238,7 @@ export function CharacterSheet({ mechRoot }: CharacterSheetProps) {
             <div className="stats-divider" />
             {DERIVED_STATS.map(s => {
               const srcMod = s.from.reduce((acc, k) => acc + calcModifier(mainStatTotal(k)), 0);
-              const bonus = sumMods(mechRoot, s.modKey);
+              const bonus = sumMods(mechRoot, s.modKey) + (currentScaleMods[s.modKey as keyof ScaleModifiers] as number ?? 0);
               const total = srcMod + bonus;
               return (
                 <div key={s.key} className="stats-row">
@@ -248,7 +254,7 @@ export function CharacterSheet({ mechRoot }: CharacterSheetProps) {
             })}
             <div className="stats-divider" />
             {EQUIP_STATS.map(e => {
-              const val = sumMods(mechRoot, e.modKey);
+              const val = sumMods(mechRoot, e.modKey) + (currentScaleMods[e.modKey as keyof ScaleModifiers] as number ?? 0);
               return (
                 <div key={e.key} className="stats-row">
                   <span className="stat-col-stat">{e.label}</span>
