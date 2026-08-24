@@ -447,6 +447,26 @@ export function ComponentCreator({
                 )}
               </>
             )}
+            {tab === 'models' && (
+              <>
+                {models
+                  .map((m, i) => ({ m, i }))
+                  .filter(({ m }) => !search || normalizeStr(m.name).includes(normalizeStr(search)))
+                  .map(({ m, i }) => (
+                    <button
+                      key={m.name}
+                      className={`creator-lib-item ${editingModelIdx === i ? 'sel' : ''}`}
+                      onClick={() => selectModel(i)}
+                    >
+                      <span className="creator-lib-name">{m.name}</span>
+                      <span className="creator-lib-scales">{m.scales.join(' / ') || 'no scales'}</span>
+                    </button>
+                  ))}
+                {models.filter(m => !search || normalizeStr(m.name).includes(normalizeStr(search))).length === 0 && (
+                  <div className="creator-lib-empty">No models</div>
+                )}
+              </>
+            )}
             {tab === 'scales' && (
               <>
                 {orderedScales
@@ -512,27 +532,7 @@ export function ComponentCreator({
                   + New
                 </button>
               )}
-            {tab === 'models' && (
-              <>
-                {models
-                  .map((m, i) => ({ m, i }))
-                  .filter(({ m }) => !search || normalizeStr(m.name).includes(normalizeStr(search)))
-                  .map(({ m, i }) => (
-                    <button
-                      key={m.name}
-                      className={`creator-lib-item ${editingModelIdx === i ? 'sel' : ''}`}
-                      onClick={() => selectModel(i)}
-                    >
-                      <span className="creator-lib-name">{m.name}</span>
-                      <span className="creator-lib-scales">{m.scales.join(' / ') || 'no scales'}</span>
-                    </button>
-                  ))}
-                {models.filter(m => !search || normalizeStr(m.name).includes(normalizeStr(search))).length === 0 && (
-                  <div className="creator-lib-empty">No models</div>
-                )}
-              </>
-            )}
-            {tab === 'scales' && (
+              {tab === 'scales' && (
                 <button className="creator-btn creator-btn-new" onClick={handleScaleNew}>
                   + New Scale
                 </button>
