@@ -1,6 +1,11 @@
 export type ComponentCategory = 'core' | 'utility' | 'weapon';
 
-export type ScaleType = 'SD' | 'HG' | 'MG' | 'PG';
+export type ScaleType = string;
+
+export interface ArchetypeOption {
+  label: string;
+  cost: number;
+}
 
 export interface ScaleModifiers {
   dexMod?: number;
@@ -236,6 +241,24 @@ export function buildPremadeLib(premade: Record<string, PremadeData[]>): Record<
     }
   }
   return lib;
+}
+
+export function mergePremades(
+  base: Record<string, PremadeData[]>,
+  edits: Record<number, PremadeData>,
+): Record<string, PremadeData[]> {
+  const byCat: Record<string, PremadeData[]> = {};
+  const add = (c: PremadeData) => {
+    const cat = c.category ?? 'core';
+    (byCat[cat] ??= []).push(c);
+  };
+  for (const comps of Object.values(base)) {
+    for (const c of comps ?? []) {
+      const edit = edits[c.id];
+      add(edit ? { ...c, ...edit } : c);
+    }
+  }
+  return byCat;
 }
 
 export function compactTree(node: ComponentNode): CompactNode {

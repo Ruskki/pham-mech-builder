@@ -1,32 +1,10 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import type { ComponentNode, ScaleType, ScaleModifiers } from '../../types';
+import type { ComponentNode, ScaleType, ScaleModifiers, ArchetypeOption } from '../../types';
+import { SCALES } from '../../data/defaults';
 import './SidePanel.css';
-
-interface ArchetypeOption {
-  label: string;
-  cost: number;
-}
-
-const ARCHETYPES: ArchetypeOption[] = [
-  { label: 'Striker', cost: 3 },
-  { label: 'Tank', cost: 4 },
-  { label: 'Support', cost: 2 },
-  { label: 'Scout', cost: 2 },
-  { label: 'Artillery', cost: 5 },
-  { label: 'Stealth', cost: 4 },
-];
 
 const SD_MODELS = ['Beacon', 'Kilo-ton', 'Black Flash', 'Ex-calibur'];
 const STD_MODELS = ['Prototype', 'Mass Production', 'Biotype'];
-
-const SCALES: ScaleType[] = ['SD', 'HG', 'MG', 'PG'];
-
-export const DEFAULT_SCALE_MODIFIERS: Record<ScaleType, ScaleModifiers> = {
-  SD: { dexMod: 2, strMod: -2, conMod: -1, radMod: 1, movement: 5 },
-  HG: {},
-  MG: { strMod: 2, conMod: 1, dexMod: -1, weight: 10 },
-  PG: { strMod: 3, conMod: 2, dexMod: -2, radMod: -1, weight: 25, movement: -5, healthMod: 100 },
-};
 
 const MAIN_STATS = [
   { label: 'Dexterity', key: 'dex' },
@@ -88,12 +66,13 @@ interface SidePanelProps {
   setScale: (scale: ScaleType) => void;
   scaleMods: Record<ScaleType, ScaleModifiers>;
   setScaleMods: (mods: Record<ScaleType, ScaleModifiers>) => void;
+  archetypes: ArchetypeOption[];
 }
 
-export function SidePanel({ componentPoints = 0, mechRoot = null, scale, setScale, scaleMods, setScaleMods }: SidePanelProps) {
+export function SidePanel({ componentPoints = 0, mechRoot = null, scale, setScale, scaleMods, setScaleMods, archetypes }: SidePanelProps) {
   const [bases, setBases] = useState<StatBases>(loadBases);
-  const [selected, setSelected] = useState<Set<string>>(new Set(['Striker']));
-  const [spec, setSpec] = useState<string | null>('Striker');
+  const [selected, setSelected] = useState<Set<string>>(new Set([archetypes[0]?.label ?? 'Striker']));
+  const [spec, setSpec] = useState<string | null>(archetypes[0]?.label ?? 'Striker');
   const [model, setModel] = useState('Prototype');
 
   useEffect(() => {
@@ -143,7 +122,13 @@ export function SidePanel({ componentPoints = 0, mechRoot = null, scale, setScal
     });
   }, []);
 
-  const archetypeCost = ARCHETYPES
+  const scaleNames = useMemo(
+    () =>
+      [...(SCALES as readonly string[]), ...Object.keys(scaleMods).filter(s => !(SCALES as readonly string[]).includes(s))],
+    [scaleMods],
+  );
+
+  const archetypeCost = archetypes
     .filter(a => selected.has(a.label))
     .reduce((s, a) => s + a.cost, 0);
 
@@ -218,7 +203,7 @@ export function SidePanel({ componentPoints = 0, mechRoot = null, scale, setScal
       <div className="meta-group">
         <div className="meta-group-label">Archetypes</div>
         <div className="meta-items">
-          {ARCHETYPES.map(a => {
+          {archetypes.map(a => {
             const isSelected = selected.has(a.label);
             const isSpec = spec === a.label;
             return (
@@ -242,7 +227,7 @@ export function SidePanel({ componentPoints = 0, mechRoot = null, scale, setScal
       <div className="meta-group">
         <div className="meta-group-label">Scale</div>
         <div className="meta-items">
-          {SCALES.map(s => {
+          {scaleNames.map(s => {
             const on = scale === s;
             return (
               <button

@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import type { ComponentCategory, MechComponent, PremadeData } from '../../types';
 import { premadeToComponent, normalizeStr } from '../../types';
-import allComponents from '../../data/components.json';
 import './ComponentPicker.css';
 
 interface ComponentPickerProps {
   onPick: (component: MechComponent) => void;
   onClose: () => void;
   customComponents?: PremadeData[];
+  premadeData?: Record<string, PremadeData[]>;
 }
 
 const CATEGORIES: ComponentCategory[] = ['core', 'utility', 'weapon'];
@@ -17,7 +17,7 @@ const CAT_COLORS: Record<string, string> = {
   weapon: '#ef5350',
 };
 
-export function ComponentPicker({ onPick, onClose, customComponents = [] }: ComponentPickerProps) {
+export function ComponentPicker({ onPick, onClose, customComponents = [], premadeData = {} }: ComponentPickerProps) {
   const [search, setSearch] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -25,11 +25,9 @@ export function ComponentPicker({ onPick, onClose, customComponents = [] }: Comp
     inputRef.current?.focus();
   }, []);
 
-  const premade = allComponents as Record<string, PremadeData[]>;
-
   const allItems: { data: PremadeData; group: ComponentCategory; isCustom?: boolean }[] = [
     ...CATEGORIES.flatMap(cat =>
-      (premade[cat] ?? []).map(c => ({ data: { ...c, category: cat }, group: cat })),
+      (premadeData[cat] ?? []).map(c => ({ data: { ...c, category: cat }, group: cat })),
     ),
     ...customComponents.map(c => ({ data: c, group: c.category, isCustom: true })),
   ];

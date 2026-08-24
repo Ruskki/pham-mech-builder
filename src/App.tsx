@@ -1,16 +1,19 @@
-import { useState, useCallback, useEffect } from 'react';
-import type { ComponentNode, PremadeData, StoredBuild, ScaleType, ScaleModifiers } from './types';
-import { buildPremadeLib, compactTree, expandTree, premadeToComponent } from './types';
+import { useState, useCallback, useEffect, useMemo } from 'react';
+import type { ComponentNode, PremadeData, StoredBuild, ScaleType, ScaleModifiers, ArchetypeOption } from './types';
+import { buildPremadeLib, compactTree, expandTree, mergePremades, premadeToComponent } from './types';
 import { MechBuilder } from './pages/MechBuilder/MechBuilder';
 import { ComponentCreator } from './pages/ComponentCreator/ComponentCreator';
 import { CharacterSheet } from './pages/CharacterSheet/CharacterSheet';
 import allComponents from './data/components.json';
-import { DEFAULT_SCALE_MODIFIERS } from './pages/MechBuilder/SidePanel';
+import { DEFAULT_SCALE_MODIFIERS, DEFAULT_ARCHETYPES } from './data/defaults';
 import './index.css';
 import './App.css';
 
 const CUSTOM_KEY = 'pham-mech-builder-custom';
 const MECH_KEY = 'pham-mech-builder-mech';
+const SCALES_KEY = 'pham-mech-builder-scales';
+const ARCHETYPES_KEY = 'pham-mech-builder-archetypes';
+const PREMADE_EDITS_KEY = 'pham-mech-builder-premade-edits';
 
 type Page = 'creator' | 'builder' | 'sheet';
 
@@ -19,9 +22,6 @@ const PAGES: { key: Page; label: string }[] = [
   { key: 'builder', label: 'Mech Builder' },
   { key: 'sheet', label: 'Character Sheet' },
 ];
-
-const premadeLib = buildPremadeLib(allComponents as Record<string, PremadeData[]>);
-const premadeIds = new Set(Object.keys(premadeLib).map(Number));
 
 function loadJSON<T>(key: string, fallback: T): T {
   try {
@@ -32,6 +32,10 @@ function loadJSON<T>(key: string, fallback: T): T {
   }
 }
 
+function loadPremadeEdits(): Record<number, PremadeData> {
+  return loadJSON<Record<number, PremadeData>>(PREMADE_EDITS_KEY, {});
+}
+
 function loadMech(): ComponentNode | null {
   try {
     const stored = loadJSON<any>(MECH_KEY, null);
@@ -40,8 +44,10 @@ function loadMech(): ComponentNode | null {
     if (stored.id && stored.component) return stored as ComponentNode;
     // New format: StoredBuild with tree + customs
     if (!stored.tree) return null;
+    const merged = mergePremades(allComponents as Record<string, PremadeData[]>, loadPremadeEdits());
+    const baseLib = buildPremadeLib(merged);
     const lib: Record<number, ReturnType<typeof premadeToComponent>> = {};
-    for (const [id, p] of Object.entries(premadeLib)) {
+    for (const [id, p] of Object.entries(baseLib)) {
       lib[Number(id)] = premadeToComponent(p as PremadeData);
     }
     for (const c of stored.customs ?? []) {
@@ -69,14 +75,52 @@ export function App() {
   const [customComponents, setCustomComponents] = useState<PremadeData[]>(() => loadJSON(CUSTOM_KEY, []));
   const [mechRoot, setMechRoot] = useState<ComponentNode | null>(() => loadMech());
   const [scale, setScale] = useState<ScaleType>('HG');
-  const [scaleMods, setScaleMods] = useState<Record<ScaleType, ScaleModifiers>>(() =>
-    JSON.parse(JSON.stringify(DEFAULT_SCALE_MODIFIERS))
-  );
+  const [scaleMods, setScaleMods] = useState<Record<ScaleType, ScaleModifiers>>(() => ({
+    ...DEFAULT_SCALE_MODIFIERS,
+    ...loadJSON<Record<string, ScaleModifiers>>(SCALES_KEY, {}),
+  }));
+  const [archetypes, setArchetypes] = useState<ArchetypeOption[]>(() => loadJSON(ARCHETYPES_KEY, DEFAULT_ARCHETYPES));
+  const [premadeEdits, setPremadeEdits] = useState<Record<number, PremadeData>>(() => loadJSON(PREMADE_EDITS_KEY, {}));
 
   useEffect(() => {
     localStorage.setItem(CUSTOM_KEY, JSON.stringify(customComponents));
     saveMech(mechRoot, customComponents);
   }, [customComponents, mechRoot]);
+
+  useEffect(() => {
+    localStorage.setItem(SCALES_KEY, JSON.stringify(scaleMods));
+  }, [scaleMods]);
+
+  useEffect(() => {
+    localStorage.setItem(ARCHETYPES_KEY, JSON.stringify(archetypes));
+  }, [archetypes]);
+
+  useEffect(() => {
+    localStorage.setItem(PREMADE_EDITS_KEY, JSON.stringify(premadeEdits));
+  }, [premadeEdits]);
+
+  useEffect(() => {
+    if (scaleMods[scale] === undefined) {
+      setScale(Object.keys(scaleMods)[0] ?? 'HG');
+    }
+  }, [scaleMods, scale]);
+
+  const updatePremadeEdit = useCallback((comp: PremadeData) => {
+    setPremadeEdits(prev => ({ ...prev, [comp.id]: comp }));
+  }, []);
+
+  const removePremadeEdit = useCallback((id: number) => {
+    setPremadeEdits(prev => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+  }, []);
+
+  const mergedPremades = useMemo(
+    () => mergePremades(allComponents as Record<string, PremadeData[]>, premadeEdits),
+    [premadeEdits],
+  );
 
   const addCustom = useCallback((comp: PremadeData) => {
     setCustomComponents(prev => [...prev, comp]);
@@ -126,6 +170,14 @@ export function App() {
             onAdd={addCustom}
             onUpdate={updateCustom}
             onRemove={removeCustom}
+            premadeData={mergedPremades}
+            premadeEdits={premadeEdits}
+            onUpdatePremadeEdit={updatePremadeEdit}
+            onRemovePremadeEdit={removePremadeEdit}
+            archetypes={archetypes}
+            setArchetypes={setArchetypes}
+            scaleMods={scaleMods}
+            setScaleMods={setScaleMods}
           />
         )}
         {page === 'builder' && (
@@ -137,6 +189,8 @@ export function App() {
             setScale={setScale}
             scaleMods={scaleMods}
             setScaleMods={setScaleMods}
+            archetypes={archetypes}
+            premadeData={mergedPremades}
           />
         )}
         {page === 'sheet' && (

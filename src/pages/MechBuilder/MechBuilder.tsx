@@ -1,11 +1,10 @@
 import { useState, useCallback, useRef, useMemo } from 'react';
-import type { MechComponent, ComponentNode, PremadeData, StoredBuild, ScaleType, ScaleModifiers } from '../../types';
+import type { MechComponent, ComponentNode, PremadeData, StoredBuild, ScaleType, ScaleModifiers, ArchetypeOption } from '../../types';
 import { createNode, addToSlot, removeById, buildPremadeLib, expandTree, compactTree, collectCustomIds, premadeToComponent } from '../../types';
 import { SidePanel } from './SidePanel';
 import { MechTree, RootSlot } from './MechTree';
 import { GraphView } from './GraphView';
 import { ComponentPicker } from './ComponentPicker';
-import allComponents from '../../data/components.json';
 import './MechBuilder.css';
 
 interface MechBuilderProps {
@@ -16,11 +15,11 @@ interface MechBuilderProps {
   setScale: (scale: ScaleType) => void;
   scaleMods: Record<ScaleType, ScaleModifiers>;
   setScaleMods: (mods: Record<ScaleType, ScaleModifiers>) => void;
+  archetypes: ArchetypeOption[];
+  premadeData: Record<string, PremadeData[]>;
 }
 
 type SlotTarget = { parentId: string | null; slotIndex: number | null }; 
-
-const premadeLib = buildPremadeLib(allComponents as Record<string, PremadeData[]>);
 
 function sumComponentPoints(node: ComponentNode | null): number {
   if (!node) return 0;
@@ -29,10 +28,12 @@ function sumComponentPoints(node: ComponentNode | null): number {
   return t;
 }
 
-export function MechBuilder({ customComponents, mechRoot: rootNode, onMechRootChange: setRootNode, scale, setScale, scaleMods, setScaleMods }: MechBuilderProps) {
+export function MechBuilder({ customComponents, mechRoot: rootNode, onMechRootChange: setRootNode, scale, setScale, scaleMods, setScaleMods, archetypes, premadeData }: MechBuilderProps) {
   const [pickingTarget, setPickingTarget] = useState<SlotTarget | null>(null);
   const [viewMode, setViewMode] = useState<'tree' | 'graph'>('tree');
   const importRef = useRef<HTMLInputElement>(null);
+
+  const premadeLib = useMemo(() => buildPremadeLib(premadeData), [premadeData]);
 
   function exportMech() {
     if (!rootNode) return;
@@ -179,7 +180,7 @@ export function MechBuilder({ customComponents, mechRoot: rootNode, onMechRootCh
           </div>
         </main>
 
-        <SidePanel componentPoints={componentPoints} mechRoot={rootNode} scale={scale} setScale={setScale} scaleMods={scaleMods} setScaleMods={setScaleMods} />
+        <SidePanel componentPoints={componentPoints} mechRoot={rootNode} scale={scale} setScale={setScale} scaleMods={scaleMods} setScaleMods={setScaleMods} archetypes={archetypes} />
       </div>
 
       {pickingTarget && (
@@ -187,6 +188,7 @@ export function MechBuilder({ customComponents, mechRoot: rootNode, onMechRootCh
           onPick={handlePick}
           onClose={handleClosePicker}
           customComponents={customComponents}
+          premadeData={premadeData}
         />
       )}
     </div>
