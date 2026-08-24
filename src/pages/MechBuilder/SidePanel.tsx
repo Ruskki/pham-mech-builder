@@ -1,10 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import type { ComponentNode, ScaleType, ScaleModifiers, ArchetypeOption } from '../../types';
+import type { ComponentNode, ScaleType, ScaleModifiers, ArchetypeOption, ModelOption } from '../../types';
 import { SCALES } from '../../data/defaults';
 import './SidePanel.css';
-
-const SD_MODELS = ['Beacon', 'Kilo-ton', 'Black Flash', 'Ex-calibur'];
-const STD_MODELS = ['Prototype', 'Mass Production', 'Biotype'];
 
 const MAIN_STATS = [
   { label: 'Dexterity', key: 'dex' },
@@ -67,9 +64,10 @@ interface SidePanelProps {
   scaleMods: Record<ScaleType, ScaleModifiers>;
   setScaleMods: (mods: Record<ScaleType, ScaleModifiers>) => void;
   archetypes: ArchetypeOption[];
+  models?: ModelOption[];
 }
 
-export function SidePanel({ componentPoints = 0, mechRoot = null, scale, setScale, scaleMods, setScaleMods, archetypes }: SidePanelProps) {
+export function SidePanel({ componentPoints = 0, mechRoot = null, scale, setScale, scaleMods, setScaleMods, archetypes, models = [] }: SidePanelProps) {
   const [bases, setBases] = useState<StatBases>(loadBases);
   const [selected, setSelected] = useState<Set<string>>(new Set([archetypes[0]?.label ?? 'Striker']));
   const [spec, setSpec] = useState<string | null>(archetypes[0]?.label ?? 'Striker');
@@ -100,9 +98,12 @@ export function SidePanel({ componentPoints = 0, mechRoot = null, scale, setScal
     setBases(prev => ({ ...prev, [key]: n }));
   }
 
-  const models = scale === 'SD' ? [...SD_MODELS, ...STD_MODELS] : STD_MODELS;
-  const currentModelValid = models.includes(model);
-  const resolvedModel = currentModelValid ? model : models[0];
+  const scaleModelNames = useMemo(
+    () => models.filter(m => m.scales.includes(scale)).map(m => m.name),
+    [models, scale],
+  );
+  const currentModelValid = scaleModelNames.includes(model);
+  const resolvedModel = currentModelValid ? model : scaleModelNames[0];
 
   const handleLeftClick = useCallback((label: string) => {
     setSelected(prev => {
@@ -235,7 +236,7 @@ export function SidePanel({ componentPoints = 0, mechRoot = null, scale, setScal
                 className={`meta-item ${on ? 'on' : ''}`}
                 onClick={() => {
                   setScale(s);
-                  setModel(on ? model : (s === 'SD' ? SD_MODELS[0] : STD_MODELS[0]));
+                  setModel(on ? model : models.find(m => m.scales.includes(s))?.name ?? '');
                 }}
               >
                 <span className="meta-marker">{on ? '◉' : '○'}</span>
@@ -266,7 +267,7 @@ export function SidePanel({ componentPoints = 0, mechRoot = null, scale, setScal
       <div className="meta-group">
         <div className="meta-group-label">Model</div>
         <div className="meta-items">
-          {models.map(m => {
+          {scaleModelNames.map(m => {
             const on = resolvedModel === m;
             return (
               <button

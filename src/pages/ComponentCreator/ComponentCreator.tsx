@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useMemo, ChangeEvent } from 'react';
-import type { PremadeData, ComponentCategory, ScaleModifiers, ArchetypeOption } from '../../types';
+import type { Dispatch, SetStateAction } from 'react';
+import type { PremadeData, ComponentCategory, ScaleModifiers, ArchetypeOption, ModelOption } from '../../types';
 import { defaultPremade, normalizeStr } from '../../types';
 import { SCALES, MOD_KEYS, MOD_LABELS } from '../../data/defaults';
 import './ComponentCreator.css';
@@ -14,7 +15,9 @@ interface ComponentCreatorProps {
   onUpdatePremadeEdit: (comp: PremadeData) => void;
   onRemovePremadeEdit: (id: number) => void;
   archetypes: ArchetypeOption[];
-  setArchetypes: (archetypes: ArchetypeOption[]) => void;
+  setArchetypes: Dispatch<SetStateAction<ArchetypeOption[]>>;
+  models: ModelOption[];
+  setModels: Dispatch<SetStateAction<ModelOption[]>>;
   scaleMods: Record<string, ScaleModifiers>;
   setScaleMods: (mods: Record<string, ScaleModifiers>) => void;
 }
@@ -23,7 +26,7 @@ const CATEGORIES: ComponentCategory[] = ['core', 'utility', 'weapon'];
 const CAT_COLORS: Record<string, string> = { core: '#4fc3f7', utility: '#81c784', weapon: '#ef5350' };
 const ACTION_TYPES = ['action', 'bonus', 'reaction'];
 
-type Tab = 'components' | 'archetypes' | 'scales';
+type Tab = 'components' | 'archetypes' | 'scales' | 'models';
 
 interface LibraryEntry {
   data: PremadeData;
@@ -56,6 +59,8 @@ export function ComponentCreator({
   onRemovePremadeEdit,
   archetypes,
   setArchetypes,
+  models,
+  setModels,
   scaleMods,
   setScaleMods,
 }: ComponentCreatorProps) {
@@ -66,6 +71,9 @@ export function ComponentCreator({
 
   const [archetypeForm, setArchetypeForm] = useState<ArchetypeOption>({ label: '', cost: 0 });
   const [editingArchetypeIdx, setEditingArchetypeIdx] = useState<number | null>(null);
+
+  const [modelForm, setModelForm] = useState<ModelOption>({ name: '', scales: [] });
+  const [editingModelIdx, setEditingModelIdx] = useState<number | null>(null);
 
   const [selectedScale, setSelectedScale] = useState<string | null>(null);
   const [scaleNameInput, setScaleNameInput] = useState('');
@@ -199,6 +207,7 @@ export function ComponentCreator({
     const data = {
       customComponents,
       archetypes,
+      models,
       scales: scaleMods,
       premadeEdits,
     };
@@ -218,8 +227,10 @@ export function ComponentCreator({
   );
 
   function selectArchetype(idx: number) {
+    const a = archetypes[idx];
+    if (!a) return;
     setEditingArchetypeIdx(idx);
-    setArchetypeForm({ ...archetypes[idx] });
+    setArchetypeForm({ ...a });
   }
 
   function handleArchetypeNew() {
@@ -288,11 +299,57 @@ export function ComponentCreator({
     setScaleForm(prev => ({ ...prev, [key]: value }));
   }
 
+  function selectModel(idx: number) {
+    const m = models[idx];
+    if (!m) return;
+    setEditingModelIdx(idx);
+    setModelForm({ name: m.name, scales: [...m.scales] });
+  }
+
+  function handleModelNew() {
+    setEditingModelIdx(null);
+    setModelForm({ name: '', scales: [] });
+  }
+
+  function toggleModelScale(scaleName: string) {
+    setModelForm(prev => ({
+      ...prev,
+      scales: prev.scales.includes(scaleName)
+        ? prev.scales.filter(s => s !== scaleName)
+        : [...prev.scales, scaleName],
+    }));
+  }
+
+  function handleModelSave() {
+    const name = modelForm.name.trim();
+    if (!name) return;
+    const dup = models.some((m, i) => m.name === name && i !== editingModelIdx);
+    if (dup) return;
+    const entry = { ...modelForm, name };
+    if (editingModelIdx !== null) {
+      setModels(prev => {
+        const next = [...prev];
+        next[editingModelIdx] = entry;
+        return next;
+      });
+    } else {
+      setModels(prev => [...prev, entry]);
+    }
+  }
+
+  function handleModelDelete() {
+    if (editingModelIdx === null) return;
+    setModels(prev => prev.filter((_, i) => i !== editingModelIdx));
+    handleModelNew();
+  }
+
   function onTabChange(next: Tab) {
     setTab(next);
     setSearch('');
     setEditingCustomIdx(null);
     setForm(defaultPremade('core'));
+    setEditingModelIdx(null);
+    setModelForm({ name: '', scales: [] });
   }
 
   return (
@@ -316,13 +373,19 @@ export function ComponentCreator({
         >
           Scales
         </button>
+        <button
+          className={`creator-tab ${tab === 'models' ? 'active' : ''}`}
+          onClick={() => onTabChange('models')}
+        >
+          Models
+        </button>
       </div>
       <div className='creator-page'>
         
       
         <aside className="creator-library">
           <div className="creator-lib-header">
-            <h3>{tab === 'components' ? 'Library' : tab === 'archetypes' ? 'Archetypes' : 'Scales'}</h3>
+            <h3>{tab === 'components' ? 'Library' : tab === 'archetypes' ? 'Archetypes' : tab === 'models' ? 'Models' : 'Scales'}</h3>
             <input
               className="creator-search"
               placeholder="Search…"
@@ -350,6 +413,7 @@ export function ComponentCreator({
                           onClick={() => select(entry)}
                         >
                           <span className="creator-lib-name">{entry.data.name}</span>
+                          <span className={`creator-lib-pts ${entry.data.points > 0 ? '' : 'zero'}`}>{entry.data.points}p</span>
                           {entry.kind === 'custom' && <span className="creator-lib-badge">custom</span>}
                           {entry.kind === 'premade' && (entry.data.id in premadeEdits) && (
                             <span className="creator-lib-badge">edited</span>
@@ -417,7 +481,11 @@ export function ComponentCreator({
                   ? editingArchetypeIdx !== null
                     ? 'Edit Archetype'
                     : 'New Archetype'
-                  : 'Scales'}
+                  : tab === 'models'
+                    ? editingModelIdx !== null
+                      ? 'Edit Model'
+                      : 'New Model'
+                    : 'Scales'}
             </h3>
             <div className="creator-editor-actions">
               <button className="creator-btn creator-btn-mass" onClick={handleMassExport}>
@@ -439,7 +507,32 @@ export function ComponentCreator({
                   + New
                 </button>
               )}
-              {tab === 'scales' && (
+              {tab === 'models' && (
+                <button className="creator-btn creator-btn-new" onClick={handleModelNew}>
+                  + New
+                </button>
+              )}
+            {tab === 'models' && (
+              <>
+                {models
+                  .map((m, i) => ({ m, i }))
+                  .filter(({ m }) => !search || normalizeStr(m.name).includes(normalizeStr(search)))
+                  .map(({ m, i }) => (
+                    <button
+                      key={m.name}
+                      className={`creator-lib-item ${editingModelIdx === i ? 'sel' : ''}`}
+                      onClick={() => selectModel(i)}
+                    >
+                      <span className="creator-lib-name">{m.name}</span>
+                      <span className="creator-lib-scales">{m.scales.join(' / ') || 'no scales'}</span>
+                    </button>
+                  ))}
+                {models.filter(m => !search || normalizeStr(m.name).includes(normalizeStr(search))).length === 0 && (
+                  <div className="creator-lib-empty">No models</div>
+                )}
+              </>
+            )}
+            {tab === 'scales' && (
                 <button className="creator-btn creator-btn-new" onClick={handleScaleNew}>
                   + New Scale
                 </button>
@@ -713,6 +806,57 @@ export function ComponentCreator({
               </div>
               <div className="panel-stat-row" style={{ fontSize: '0.72rem', color: '#667788', marginTop: '0.5rem' }}>
                 Total archetype cost: {archetypes.reduce((s, a) => s + a.cost, 0)}p · {archetypes.length} archetypes
+              </div>
+            </div>
+          )}
+
+          {tab === 'models' && (
+            <div className="creator-form">
+              {editingModelIdx !== null && (
+                <div className="panel-stat-row" style={{ fontSize: '0.75rem', color: '#667788' }}>
+                  Editing: {models[editingModelIdx]?.name || ''}
+                </div>
+              )}
+              <label>
+                Model Name
+                <input
+                  value={modelForm.name}
+                  onChange={e => setModelForm(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="e.g. Prototype"
+                />
+              </label>
+
+              <fieldset className="attr-mod-fieldset">
+                <legend>Compatible Scales</legend>
+                <div className="model-scale-grid">
+                  {orderedScales.map(s => (
+                    <label key={s} className="checkbox-label">
+                      <input
+                        type="checkbox"
+                        checked={modelForm.scales.includes(s)}
+                        onChange={() => toggleModelScale(s)}
+                      />
+                      {s}
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+
+              <div className="creator-form-actions">
+                <button className="creator-btn creator-btn-save" onClick={handleModelSave}>
+                  {editingModelIdx !== null ? 'Update' : 'Add Model'}
+                </button>
+                <button className="creator-btn creator-btn-clone" onClick={handleModelNew}>
+                  + New
+                </button>
+                {editingModelIdx !== null && (
+                  <button className="creator-btn creator-btn-delete" onClick={handleModelDelete}>
+                    Delete
+                  </button>
+                )}
+              </div>
+              <div className="panel-stat-row" style={{ fontSize: '0.72rem', color: '#667788', marginTop: '0.5rem' }}>
+                {models.length} models · models with no compatible scales are hidden in the builder
               </div>
             </div>
           )}

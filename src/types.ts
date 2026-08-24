@@ -7,6 +7,11 @@ export interface ArchetypeOption {
   cost: number;
 }
 
+export interface ModelOption {
+  name: string;
+  scales: ScaleType[];
+}
+
 export interface ScaleModifiers {
   dexMod?: number;
   strMod?: number;

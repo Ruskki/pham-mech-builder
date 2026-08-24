@@ -1,4 +1,4 @@
-import type { ScaleModifiers, ArchetypeOption } from '../types';
+import type { ScaleModifiers, ArchetypeOption, ModelOption } from '../types';
 
 export const SCALES = ['SD', 'HG', 'MG', 'PG'] as const;
 
@@ -16,6 +16,14 @@ export const DEFAULT_ARCHETYPES: ArchetypeOption[] = [
   { label: 'Scout', cost: 2 },
   { label: 'Artillery', cost: 5 },
   { label: 'Stealth', cost: 4 },
+];
+
+const SD_MODELS = ['Beacon', 'Kilo-ton', 'Black Flash', 'Ex-calibur'];
+const STD_MODELS = ['Prototype', 'Mass Production', 'Biotype'];
+
+export const DEFAULT_MODELS: ModelOption[] = [
+  ...SD_MODELS.map(name => ({ name, scales: ['SD'] })),
+  ...STD_MODELS.map(name => ({ name, scales: [...SCALES] })),
 ];
 
 export const MOD_KEYS: (keyof ScaleModifiers)[] = [

@@ -384,3 +384,34 @@
 .creator-lib-badge.edited {
   background: #6a5acd;
 }
+
+.creator-lib-pts {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: #4fc3f7;
+  background: rgba(79, 195, 247, 0.12);
+  border: 1px solid rgba(79, 195, 247, 0.35);
+  padding: 0.05rem 0.3rem;
+  border-radius: 3px;
+  letter-spacing: 0.04em;
+}
+
+.creator-lib-pts.zero {
+  color: #667788;
+  background: transparent;
+  border-color: #1a3a6e;
+}
+
+.creator-lib-scales {
+  font-size: 0.58rem;
+  font-weight: 600;
+  color: #667788;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.model-scale-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+}
