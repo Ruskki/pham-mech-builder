@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useMemo, ChangeEvent } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import type { PremadeData, ComponentCategory, ScaleModifiers, ArchetypeOption, ModelOption } from '../../types';
 import { defaultPremade, normalizeStr } from '../../types';
-import { SCALES, MOD_KEYS, MOD_LABELS } from '../../data/defaults';
+import { SCALES, MOD_KEYS, MOD_LABELS, DEFAULT_ARCHETYPES, DEFAULT_MODELS, DEFAULT_SCALE_MODIFIERS } from '../../data/defaults';
 import './ComponentCreator.css';
 
 interface ComponentCreatorProps {
@@ -20,6 +20,8 @@ interface ComponentCreatorProps {
   setModels: Dispatch<SetStateAction<ModelOption[]>>;
   scaleMods: Record<string, ScaleModifiers>;
   setScaleMods: (mods: Record<string, ScaleModifiers>) => void;
+  onDeleteAll: () => void;
+  onMassImport: (data: Record<string, unknown>) => void;
 }
 
 const CATEGORIES: ComponentCategory[] = ['core', 'utility', 'weapon'];
@@ -63,6 +65,8 @@ export function ComponentCreator({
   setModels,
   scaleMods,
   setScaleMods,
+  onDeleteAll,
+  onMassImport,
 }: ComponentCreatorProps) {
   const [tab, setTab] = useState<Tab>('components');
   const [search, setSearch] = useState('');
@@ -80,6 +84,7 @@ export function ComponentCreator({
   const [scaleForm, setScaleForm] = useState<ScaleModifiers>({});
 
   const importRef = useRef<HTMLInputElement>(null);
+  const massImportRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (tab !== 'components') {
@@ -203,9 +208,35 @@ export function ComponentCreator({
     e.target.value = '';
   }
 
+  function handleMassImport(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const data = JSON.parse(reader.result as string);
+        if (data && typeof data === 'object' && 'premadeComponents' in data) {
+          onMassImport(data);
+          setEditingCustomIdx(null);
+          setForm(defaultPremade('core'));
+          setEditingArchetypeIdx(null);
+          setArchetypeForm({ label: '', cost: 0 });
+          setEditingModelIdx(null);
+          setModelForm({ name: '', scales: [] });
+          setSelectedScale(null);
+          setScaleNameInput('');
+          setScaleForm({});
+        }
+      } catch { /* ignore */ }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  }
+
   function handleMassExport() {
     const data = {
       customComponents,
+      premadeComponents: premadeData,
       archetypes,
       models,
       scales: scaleMods,
@@ -218,6 +249,20 @@ export function ComponentCreator({
     a.download = 'pham-library-export.json';
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  function handleDeleteAll() {
+    if (!confirm('Delete ALL custom components, archetypes, scales, models, and premade edits? This cannot be undone.')) return;
+    onDeleteAll();
+    setEditingCustomIdx(null);
+    setForm(defaultPremade('core'));
+    setEditingArchetypeIdx(null);
+    setArchetypeForm({ label: '', cost: 0 });
+    setEditingModelIdx(null);
+    setModelForm({ name: '', scales: [] });
+    setSelectedScale(null);
+    setScaleNameInput('');
+    setScaleForm({});
   }
 
   const orderedScales = useMemo(
@@ -510,6 +555,13 @@ export function ComponentCreator({
             <div className="creator-editor-actions">
               <button className="creator-btn creator-btn-mass" onClick={handleMassExport}>
                 Mass Export
+              </button>
+              <input ref={massImportRef} type="file" accept=".json" onChange={handleMassImport} hidden />
+              <button className="creator-btn creator-btn-mass" onClick={() => massImportRef.current?.click()}>
+                Mass Import
+              </button>
+              <button className="creator-btn creator-btn-delete-all" onClick={handleDeleteAll}>
+                Delete All
               </button>
               {tab === 'components' && (
                 <>

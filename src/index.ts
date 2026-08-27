@@ -1,10 +1,35 @@
 import { serve } from "bun";
+import { readFileSync, writeFileSync } from "fs";
 import index from "./index.html";
+
+const DATA_FILE = new URL("../src/data/components.json", import.meta.url).pathname;
+
+function loadData(): Record<string, unknown> {
+  try {
+    return JSON.parse(readFileSync(DATA_FILE, "utf-8"));
+  } catch {
+    return { core: [], utility: [], weapon: [] };
+  }
+}
+
+function saveData(data: Record<string, unknown>): void {
+  writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
+}
 
 const server = serve({
   routes: {
-    // Serve index.html for all unmatched routes.
     "/*": index,
+
+    "/api/data": {
+      async GET() {
+        return Response.json(loadData());
+      },
+      async POST(req) {
+        const body = (await req.json()) as Record<string, unknown>;
+        saveData(body);
+        return Response.json({ ok: true });
+      },
+    },
 
     "/api/shutdown": {
       async POST() {
@@ -15,10 +40,7 @@ const server = serve({
   },
 
   development: process.env.NODE_ENV !== "production" && {
-    // Enable browser hot reloading in development
     hmr: true,
-
-    // Echo console logs from the browser to the server
     console: true,
   },
 });

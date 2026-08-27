@@ -1,20 +1,12 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import type { ComponentNode, PremadeData, StoredBuild, ScaleType, ScaleModifiers, ArchetypeOption, ModelOption } from './types';
 import { buildPremadeLib, compactTree, expandTree, mergePremades, premadeToComponent } from './types';
 import { MechBuilder } from './pages/MechBuilder/MechBuilder';
 import { ComponentCreator } from './pages/ComponentCreator/ComponentCreator';
 import { CharacterSheet } from './pages/CharacterSheet/CharacterSheet';
-import allComponents from './data/components.json';
 import { DEFAULT_SCALE_MODIFIERS, DEFAULT_ARCHETYPES, DEFAULT_MODELS } from './data/defaults';
 import './index.css';
 import './App.css';
-
-const CUSTOM_KEY = 'pham-mech-builder-custom';
-const MECH_KEY = 'pham-mech-builder-mech';
-const SCALES_KEY = 'pham-mech-builder-scales';
-const ARCHETYPES_KEY = 'pham-mech-builder-archetypes';
-const MODELS_KEY = 'pham-mech-builder-models';
-const PREMADE_EDITS_KEY = 'pham-mech-builder-premade-edits';
 
 type Page = 'creator' | 'builder' | 'sheet';
 
@@ -24,86 +16,147 @@ const PAGES: { key: Page; label: string }[] = [
   { key: 'sheet', label: 'Character Sheet' },
 ];
 
-function loadJSON<T>(key: string, fallback: T): T {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : fallback;
-  } catch {
-    return fallback;
+interface UserData {
+  premades: Record<string, PremadeData[]>;
+  customComponents: PremadeData[];
+  archetypes: ArchetypeOption[];
+  models: ModelOption[];
+  scales: Record<string, ScaleModifiers>;
+  premadeEdits: Record<number, PremadeData>;
+}
+
+const EMPTY_DATA: UserData = {
+  premades: { core: [], utility: [], weapon: [] },
+  customComponents: [],
+  archetypes: DEFAULT_ARCHETYPES,
+  models: DEFAULT_MODELS,
+  scales: { ...DEFAULT_SCALE_MODIFIERS },
+  premadeEdits: {},
+};
+
+let saveTimer: ReturnType<typeof setTimeout> | null = null;
+
+function saveToAPI(data: UserData) {
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    const payload: Record<string, unknown> = {
+      ...data.premades,
+      customComponents: data.customComponents,
+      archetypes: data.archetypes,
+      models: data.models,
+      scales: data.scales,
+      premadeEdits: data.premadeEdits,
+    };
+    fetch('/api/data', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }).catch(console.error);
+  }, 300);
+}
+
+function parseData(raw: Record<string, unknown>): UserData {
+  return {
+    premades: {
+      core: (raw.core as PremadeData[]) ?? [],
+      utility: (raw.utility as PremadeData[]) ?? [],
+      weapon: (raw.weapon as PremadeData[]) ?? [],
+    },
+    customComponents: (raw.customComponents as PremadeData[]) ?? [],
+    archetypes: (raw.archetypes as ArchetypeOption[]) ?? DEFAULT_ARCHETYPES,
+    models: (raw.models as ModelOption[]) ?? DEFAULT_MODELS,
+    scales: (raw.scales as Record<string, ScaleModifiers>) ?? { ...DEFAULT_SCALE_MODIFIERS },
+    premadeEdits: (raw.premadeEdits as Record<number, PremadeData>) ?? {},
+  };
+}
+
+function loadMechFromStored(stored: StoredBuild, merged: Record<string, PremadeData[]>): ComponentNode | null {
+  if (!stored.tree) return null;
+  const baseLib = buildPremadeLib(merged);
+  const lib: Record<number, ReturnType<typeof premadeToComponent>> = {};
+  for (const [id, p] of Object.entries(baseLib)) {
+    lib[Number(id)] = premadeToComponent(p as PremadeData);
   }
+  for (const c of stored.customs ?? []) {
+    if (c.id == null) continue;
+    lib[c.id] = premadeToComponent(c);
+  }
+  return expandTree(stored.tree, lib);
 }
 
-function loadPremadeEdits(): Record<number, PremadeData> {
-  return loadJSON<Record<number, PremadeData>>(PREMADE_EDITS_KEY, {});
-}
-
-function loadMech(): ComponentNode | null {
+function loadMech(merged: Record<string, PremadeData[]>, customs: PremadeData[]): ComponentNode | null {
   try {
-    const stored = loadJSON<any>(MECH_KEY, null);
-    if (!stored) return null;
-    // Old format: bare ComponentNode tree stored directly
+    const raw = localStorage.getItem('pham-mech-builder-mech');
+    if (!raw) return null;
+    const stored = JSON.parse(raw);
     if (stored.id && stored.component) return stored as ComponentNode;
-    // New format: StoredBuild with tree + customs
     if (!stored.tree) return null;
-    const merged = mergePremades(allComponents as Record<string, PremadeData[]>, loadPremadeEdits());
-    const baseLib = buildPremadeLib(merged);
-    const lib: Record<number, ReturnType<typeof premadeToComponent>> = {};
-    for (const [id, p] of Object.entries(baseLib)) {
-      lib[Number(id)] = premadeToComponent(p as PremadeData);
-    }
-    for (const c of stored.customs ?? []) {
-      if (c.id == null) continue;
-      lib[c.id] = premadeToComponent(c);
-    }
-    return expandTree(stored.tree, lib);
+    return loadMechFromStored(stored, merged);
   } catch {
-    localStorage.removeItem(MECH_KEY);
+    localStorage.removeItem('pham-mech-builder-mech');
     return null;
   }
 }
 
-function saveMech(root: ComponentNode | null, allCustoms: PremadeData[]): void {
+function saveMech(root: ComponentNode | null, allCustoms: PremadeData[]) {
   if (!root) {
-    localStorage.removeItem(MECH_KEY);
+    localStorage.removeItem('pham-mech-builder-mech');
     return;
   }
   const stored: StoredBuild = { customs: allCustoms, tree: compactTree(root) };
-  localStorage.setItem(MECH_KEY, JSON.stringify(stored));
+  localStorage.setItem('pham-mech-builder-mech', JSON.stringify(stored));
 }
 
 export function App() {
   const [page, setPage] = useState<Page>('builder');
-  const [customComponents, setCustomComponents] = useState<PremadeData[]>(() => loadJSON(CUSTOM_KEY, []));
-  const [mechRoot, setMechRoot] = useState<ComponentNode | null>(() => loadMech());
+  const [loaded, setLoaded] = useState(false);
+  const [premades, setPremades] = useState<Record<string, PremadeData[]>>({ core: [], utility: [], weapon: [] });
+  const [customComponents, setCustomComponents] = useState<PremadeData[]>([]);
+  const [mechRoot, setMechRoot] = useState<ComponentNode | null>(null);
   const [scale, setScale] = useState<ScaleType>('HG');
-  const [scaleMods, setScaleMods] = useState<Record<ScaleType, ScaleModifiers>>(() => ({
-    ...DEFAULT_SCALE_MODIFIERS,
-    ...loadJSON<Record<string, ScaleModifiers>>(SCALES_KEY, {}),
-  }));
-  const [archetypes, setArchetypes] = useState<ArchetypeOption[]>(() => loadJSON(ARCHETYPES_KEY, DEFAULT_ARCHETYPES));
-  const [models, setModels] = useState<ModelOption[]>(() => loadJSON(MODELS_KEY, DEFAULT_MODELS));
-  const [premadeEdits, setPremadeEdits] = useState<Record<number, PremadeData>>(() => loadJSON(PREMADE_EDITS_KEY, {}));
+  const [scaleMods, setScaleMods] = useState<Record<ScaleType, ScaleModifiers>>({ ...DEFAULT_SCALE_MODIFIERS });
+  const [archetypes, setArchetypes] = useState<ArchetypeOption[]>(DEFAULT_ARCHETYPES);
+  const [models, setModels] = useState<ModelOption[]>(DEFAULT_MODELS);
+  const [premadeEdits, setPremadeEdits] = useState<Record<number, PremadeData>>({});
+
+  const dataRef = useRef<UserData>(EMPTY_DATA);
 
   useEffect(() => {
-    localStorage.setItem(CUSTOM_KEY, JSON.stringify(customComponents));
+    fetch('/api/data')
+      .then(r => r.json())
+      .then((raw: Record<string, unknown>) => {
+        const data = parseData(raw);
+        dataRef.current = data;
+        setPremades(data.premades);
+        setCustomComponents(data.customComponents);
+        setScaleMods(data.scales);
+        setArchetypes(data.archetypes);
+        setModels(data.models);
+        setPremadeEdits(data.premadeEdits);
+        const merged = mergePremades(data.premades, data.premadeEdits);
+        setMechRoot(loadMech(merged, data.customComponents));
+        setLoaded(true);
+      })
+      .catch(() => setLoaded(true));
+  }, []);
+
+  useEffect(() => {
+    if (!loaded) return;
+    dataRef.current = {
+      premades,
+      customComponents,
+      archetypes,
+      models,
+      scales: scaleMods,
+      premadeEdits,
+    };
+    saveToAPI(dataRef.current);
+  }, [premades, customComponents, archetypes, models, scaleMods, premadeEdits, loaded]);
+
+  useEffect(() => {
+    if (!loaded) return;
     saveMech(mechRoot, customComponents);
-  }, [customComponents, mechRoot]);
-
-  useEffect(() => {
-    localStorage.setItem(SCALES_KEY, JSON.stringify(scaleMods));
-  }, [scaleMods]);
-
-  useEffect(() => {
-    localStorage.setItem(ARCHETYPES_KEY, JSON.stringify(archetypes));
-  }, [archetypes]);
-
-  useEffect(() => {
-    localStorage.setItem(MODELS_KEY, JSON.stringify(models));
-  }, [models]);
-
-  useEffect(() => {
-    localStorage.setItem(PREMADE_EDITS_KEY, JSON.stringify(premadeEdits));
-  }, [premadeEdits]);
+  }, [mechRoot, customComponents, loaded]);
 
   useEffect(() => {
     if (scaleMods[scale] === undefined) {
@@ -124,8 +177,8 @@ export function App() {
   }, []);
 
   const mergedPremades = useMemo(
-    () => mergePremades(allComponents as Record<string, PremadeData[]>, premadeEdits),
-    [premadeEdits],
+    () => mergePremades(premades, premadeEdits),
+    [premades, premadeEdits],
   );
 
   const addCustom = useCallback((comp: PremadeData) => {
@@ -143,6 +196,72 @@ export function App() {
   const removeCustom = useCallback((index: number) => {
     setCustomComponents(prev => prev.filter((_, i) => i !== index));
   }, []);
+
+  const handleDeleteAll = useCallback(() => {
+    const blank: UserData = {
+      premades: { core: [], utility: [], weapon: [] },
+      customComponents: [],
+      archetypes: [],
+      models: [],
+      scales: {},
+      premadeEdits: {},
+    };
+    dataRef.current = blank;
+    localStorage.removeItem('pham-mech-builder-mech');
+    fetch('/api/data', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        core: [], utility: [], weapon: [],
+        customComponents: [], archetypes: [],
+        models: [], scales: {},
+        premadeEdits: {},
+      }),
+    }).catch(console.error);
+    setPremades({ core: [], utility: [], weapon: [] });
+    setCustomComponents([]);
+    setPremadeEdits({});
+    setArchetypes([]);
+    setModels([]);
+    setScaleMods({});
+    setMechRoot(null);
+  }, []);
+
+  const handleMassImport = useCallback((data: Record<string, unknown>) => {
+    const parsed = parseData(data);
+    dataRef.current = parsed;
+    const payload: Record<string, unknown> = {
+      ...parsed.premades,
+      customComponents: parsed.customComponents,
+      archetypes: parsed.archetypes,
+      models: parsed.models,
+      scales: parsed.scales,
+      premadeEdits: parsed.premadeEdits,
+    };
+    fetch('/api/data', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }).catch(console.error);
+    setPremades(parsed.premades);
+    setCustomComponents(parsed.customComponents);
+    setPremadeEdits(parsed.premadeEdits);
+    setArchetypes(parsed.archetypes);
+    setModels(parsed.models);
+    setScaleMods(parsed.scales);
+    setMechRoot(null);
+    localStorage.removeItem('pham-mech-builder-mech');
+  }, []);
+
+  if (!loaded) {
+    return (
+      <div className="app-root">
+        <div className="app-page" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <span style={{ color: '#667788' }}>Loading…</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="app-root">
@@ -186,6 +305,8 @@ export function App() {
             setModels={setModels}
             scaleMods={scaleMods}
             setScaleMods={setScaleMods}
+            onDeleteAll={handleDeleteAll}
+            onMassImport={handleMassImport}
           />
         )}
         {page === 'builder' && (

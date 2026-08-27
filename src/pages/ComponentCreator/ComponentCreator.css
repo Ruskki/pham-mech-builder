@@ -381,6 +381,16 @@
   border-color: #4caf50;
 }
 
+.creator-btn-delete-all {
+  background: transparent;
+  color: #ef5350;
+  border: 1px solid #ef5350;
+}
+
+.creator-btn-delete-all:hover {
+  background: rgba(239,83,80,0.15);
+}
+
 .creator-lib-badge.edited {
   background: #6a5acd;
 }
