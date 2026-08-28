@@ -134,6 +134,12 @@ export function App() {
   const [maxPoints, setMaxPoints] = useState<number>(() => {
     try { return Number(localStorage.getItem('pham-mech-builder-max-points')) || 300; } catch { return 300; }
   });
+  const [statMin, setStatMin] = useState<number>(() => {
+    try { return Number(localStorage.getItem('pham-mech-builder-stat-min')) || 5; } catch { return 5; }
+  });
+  const [maxStatPoints, setMaxStatPoints] = useState<number>(() => {
+    try { return Number(localStorage.getItem('pham-mech-builder-max-stat-points')) || 27; } catch { return 27; }
+  });
 
   const dataRef = useRef<UserData>(EMPTY_DATA);
 
@@ -183,6 +189,14 @@ export function App() {
   useEffect(() => {
     try { localStorage.setItem('pham-mech-builder-max-points', String(maxPoints)); } catch {}
   }, [maxPoints]);
+
+  useEffect(() => {
+    try { localStorage.setItem('pham-mech-builder-stat-min', String(statMin)); } catch {}
+  }, [statMin]);
+
+  useEffect(() => {
+    try { localStorage.setItem('pham-mech-builder-max-stat-points', String(maxStatPoints)); } catch {}
+  }, [maxStatPoints]);
 
   const updatePremadeEdit = useCallback((comp: PremadeData) => {
     setPremadeEdits(prev => ({ ...prev, [comp.id]: comp }));
@@ -357,13 +371,22 @@ export function App() {
             models={models}
             premadeData={mergedPremades}
             maxPoints={maxPoints}
+            statMin={statMin}
+            maxStatPoints={maxStatPoints}
           />
         )}
         {page === 'sheet' && (
           <CharacterSheet mechRoot={mechRoot} scale={scale} scaleMods={scaleMods} />
         )}
         {page === 'settings' && (
-          <Settings maxPoints={maxPoints} onMaxPointsChange={setMaxPoints} />
+          <Settings
+            maxPoints={maxPoints}
+            onMaxPointsChange={setMaxPoints}
+            statMin={statMin}
+            onStatMinChange={setStatMin}
+            maxStatPoints={maxStatPoints}
+            onMaxStatPointsChange={setMaxStatPoints}
+          />
         )}
       </div>
     </div>

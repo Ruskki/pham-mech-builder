@@ -19,6 +19,8 @@ interface MechBuilderProps {
   models: ModelOption[];
   premadeData: Record<string, PremadeData[]>;
   maxPoints: number;
+  statMin: number;
+  maxStatPoints: number;
 }
 
 type SlotTarget = { parentId: string | null; slotIndex: number | null }; 
@@ -30,11 +32,13 @@ function sumComponentPoints(node: ComponentNode | null): number {
   return t;
 }
 
-export function MechBuilder({ customComponents, mechRoot: rootNode, onMechRootChange: setRootNode, scale, setScale, scaleMods, setScaleMods, archetypes, models, premadeData, maxPoints }: MechBuilderProps) {
+export function MechBuilder({ customComponents, mechRoot: rootNode, onMechRootChange: setRootNode, scale, setScale, scaleMods, setScaleMods, archetypes, models, premadeData, maxPoints, statMin, maxStatPoints }: MechBuilderProps) {
   const [pickingTarget, setPickingTarget] = useState<SlotTarget | null>(null);
   const [viewMode, setViewMode] = useState<'tree' | 'graph'>('tree');
   const [mechName, setMechName] = useState('mech-name');
   const [totalPoints, setTotalPoints] = useState(0);
+  const [statPointsOver, setStatPointsOver] = useState(0);
+  const [statBelowMin, setStatBelowMin] = useState(0);
   const importRef = useRef<HTMLInputElement>(null);
 
   const premadeLib = useMemo(() => buildPremadeLib(premadeData), [premadeData]);
@@ -186,6 +190,16 @@ export function MechBuilder({ customComponents, mechRoot: rootNode, onMechRootCh
               Points exceeded: <strong>{totalPoints}</strong> / {maxPoints}
             </div>
           )}
+          {statPointsOver > 0 && (
+            <div className="points-warning">
+              Stat points exceeded by <strong>{statPointsOver}</strong>
+            </div>
+          )}
+          {statBelowMin > 0 && (
+            <div className="points-warning">
+              {statBelowMin} stat{statBelowMin > 1 ? 's' : ''} below minimum ({statMin})
+            </div>
+          )}
           <div className={`view-container ${viewMode === 'graph' ? 'view-graph' : 'view-tree'}`}>
             {viewMode === 'tree' ? (
               rootNode ? (
@@ -203,7 +217,7 @@ export function MechBuilder({ customComponents, mechRoot: rootNode, onMechRootCh
           </div>
         </main>
 
-        <SidePanel componentPoints={componentPoints} mechRoot={rootNode} scale={scale} setScale={setScale} scaleMods={scaleMods} setScaleMods={setScaleMods} archetypes={archetypes} models={models} onTotalChange={setTotalPoints} />
+        <SidePanel componentPoints={componentPoints} mechRoot={rootNode} scale={scale} setScale={setScale} scaleMods={scaleMods} setScaleMods={setScaleMods} archetypes={archetypes} models={models} onTotalChange={setTotalPoints} statMin={statMin} maxStatPoints={maxStatPoints} onStatPointsChange={setStatPointsOver} onStatBelowMinChange={setStatBelowMin} />
       </div>
 
       {pickingTarget && (

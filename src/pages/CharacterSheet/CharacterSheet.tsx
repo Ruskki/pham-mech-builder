@@ -192,6 +192,16 @@ export function CharacterSheet({ mechRoot, scale = 'HG', scaleMods = {} }: Chara
     return totals[key]?.total ?? 0;
   }
 
+  const derivedTotals = useMemo(() => {
+    const d: Record<string, number> = {};
+    for (const s of DERIVED_STATS) {
+      const srcMod = s.from.reduce((acc, k) => acc + calcModifier(mainStatTotal(k)), 0);
+      const bonus = sumMods(mechRoot, s.modKey) + (currentScaleMods[s.modKey as keyof ScaleModifiers] as number ?? 0);
+      d[s.key] = srcMod + bonus;
+    }
+    return d;
+  }, [mechRoot, currentScaleMods, totals]);
+
   const conModifier = useMemo(() => calcModifier(totals.con?.total ?? 0), [totals]);
 
   const totalMechHp = useMemo(() => sumTotalHp(mechRoot, conModifier, healthMod), [mechRoot, conModifier, healthMod]);
@@ -275,7 +285,15 @@ export function CharacterSheet({ mechRoot, scale = 'HG', scaleMods = {} }: Chara
             })}
             <div className="stats-divider" />
             {EQUIP_STATS.map(e => {
-              const val = sumMods(mechRoot, e.modKey) + (currentScaleMods[e.modKey as keyof ScaleModifiers] as number ?? 0);
+              let val: number;
+              if (e.key === 'ac') {
+                const rendMod = calcModifier(derivedTotals['rend'] ?? 0);
+                const acroMod = calcModifier(derivedTotals['acro'] ?? 0);
+                const acMod = sumMods(mechRoot, 'acMod') + (currentScaleMods['acMod' as keyof ScaleModifiers] as number ?? 0);
+                val = rendMod + acroMod + 13 + acMod;
+              } else {
+                val = sumMods(mechRoot, e.modKey) + (currentScaleMods[e.modKey as keyof ScaleModifiers] as number ?? 0);
+              }
               return (
                 <div key={e.key} className="stats-row">
                   <span className="stat-col-stat">{e.label}</span>

@@ -66,9 +66,13 @@ interface SidePanelProps {
   archetypes: ArchetypeOption[];
   models?: ModelOption[];
   onTotalChange?: (total: number) => void;
+  statMin?: number;
+  maxStatPoints?: number;
+  onStatPointsChange?: (over: number) => void;
+  onStatBelowMinChange?: (below: number) => void;
 }
 
-export function SidePanel({ componentPoints = 0, mechRoot = null, scale, setScale, scaleMods, setScaleMods, archetypes, models = [], onTotalChange }: SidePanelProps) {
+export function SidePanel({ componentPoints = 0, mechRoot = null, scale, setScale, scaleMods, setScaleMods, archetypes, models = [], onTotalChange, statMin = 5, maxStatPoints = 27, onStatPointsChange, onStatBelowMinChange }: SidePanelProps) {
   const [bases, setBases] = useState<StatBases>(loadBases);
   const [selected, setSelected] = useState<Set<string>>(new Set([archetypes[0]?.label ?? 'Striker']));
   const [spec, setSpec] = useState<string | null>(archetypes[0]?.label ?? 'Striker');
@@ -94,10 +98,29 @@ export function SidePanel({ componentPoints = 0, mechRoot = null, scale, setScal
     return totals[key]?.total ?? 0;
   }
 
+  const derivedTotals = useMemo(() => {
+    const d: Record<string, number> = {};
+    for (const s of DERIVED_STATS) {
+      const srcMod = s.from.reduce((acc, k) => acc + calcModifier(mainStatTotal(k)), 0);
+      const bonus = sumMods(mechRoot, s.modKey) + (currentScaleMods[s.modKey as keyof ScaleModifiers] as number ?? 0);
+      d[s.key] = srcMod + bonus;
+    }
+    return d;
+  }, [totals, mechRoot, currentScaleMods]);
+
   function setBase(key: string, val: string) {
     const n = val === '' ? 0 : Number(val);
     setBases(prev => ({ ...prev, [key]: n }));
   }
+
+  useEffect(() => {
+    const numStats = MAIN_STATS.length;
+    const used = Object.values(bases).reduce((s, v) => s + v, 0) - statMin * numStats;
+    const over = Math.max(0, used - maxStatPoints);
+    onStatPointsChange?.(over);
+    const below = MAIN_STATS.filter(s => (bases[s.key] ?? 0) < statMin).length;
+    onStatBelowMinChange?.(below);
+  }, [bases, statMin, maxStatPoints, onStatPointsChange, onStatBelowMinChange]);
 
   const scaleModelNames = useMemo(
     () => models.filter(m => m.scales.includes(scale)).map(m => m.name),
@@ -195,7 +218,15 @@ export function SidePanel({ componentPoints = 0, mechRoot = null, scale, setScal
         <div className="meta-group-label">Equipment</div>
         <div className="panel-stats">
           {EQUIP_STATS.map(e => {
-            const val = sumMods(mechRoot, e.modKey) + (currentScaleMods[e.modKey as keyof ScaleModifiers] as number ?? 0);
+            let val: number;
+            if (e.key === 'ac') {
+              const rendMod = calcModifier(derivedTotals['rend'] ?? 0);
+              const acroMod = calcModifier(derivedTotals['acro'] ?? 0);
+              const acMod = sumMods(mechRoot, 'acMod') + (currentScaleMods['acMod' as keyof ScaleModifiers] as number ?? 0);
+              val = rendMod + acroMod + 13 + acMod;
+            } else {
+              val = sumMods(mechRoot, e.modKey) + (currentScaleMods[e.modKey as keyof ScaleModifiers] as number ?? 0);
+            }
             return (
               <div key={e.key} className="panel-stat-row">
                 <span className="panel-stat-label">{e.label}</span>
