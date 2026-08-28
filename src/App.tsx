@@ -187,6 +187,18 @@ export function App() {
     });
   }, []);
 
+  const deletePremade = useCallback((cat: string, id: number) => {
+    setPremades(prev => ({
+      ...prev,
+      [cat]: (prev[cat] ?? []).filter(c => c.id !== id),
+    }));
+    setPremadeEdits(prev => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+  }, []);
+
   const mergedPremades = useMemo(
     () => mergePremades(premades, premadeEdits),
     [premades, premadeEdits],
@@ -320,6 +332,7 @@ export function App() {
             setScaleMods={setScaleMods}
             onDeleteAll={handleDeleteAll}
             onMassImport={handleMassImport}
+            onDeletePremade={deletePremade}
           />
         )}
         {page === 'builder' && (

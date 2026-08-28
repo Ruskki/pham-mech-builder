@@ -23,6 +23,7 @@ interface ComponentCreatorProps {
   setScaleMods: (mods: Record<string, ScaleModifiers>) => void;
   onDeleteAll: () => void;
   onMassImport: (data: Record<string, unknown>) => void;
+  onDeletePremade: (cat: string, id: number) => void;
 }
 
 const CATEGORIES: ComponentCategory[] = ['core', 'utility', 'weapon'];
@@ -69,6 +70,7 @@ export function ComponentCreator({
   setScaleMods,
   onDeleteAll,
   onMassImport,
+  onDeletePremade,
 }: ComponentCreatorProps) {
   const [tab, setTab] = useState<Tab>('components');
   const [search, setSearch] = useState('');
@@ -829,6 +831,20 @@ export function ComponentCreator({
                 {isEditingPremade && (form.id in premadeEdits) && (
                   <button className="creator-btn creator-btn-delete" onClick={handleRevertPremade}>
                     Revert
+                  </button>
+                )}
+                {isEditingPremade && (
+                  <button
+                    className="creator-btn creator-btn-delete"
+                    onClick={() => {
+                      if (confirm('Delete this component permanently?')) {
+                        onDeletePremade(form.category, form.id);
+                        setEditingCustomIdx(null);
+                        setForm(defaultPremade('core'));
+                      }
+                    }}
+                  >
+                    Delete
                   </button>
                 )}
                 {editingCustomIdx !== null && (

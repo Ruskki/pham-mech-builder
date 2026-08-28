@@ -286,20 +286,6 @@
       "energy": 1,
       "oneTimeUse": true,
       "category": "core"
-    },
-    {
-      "id": 30,
-      "name": "Modulo de transformación",
-      "description": "Sistema modular capaz de cambiar la forma del mecha. Eres capaz de cambiar la función de ciertos componentes en tu mecha para convertirte en una forma diferente mediante una acción o reacción.",
-      "healthDivisor": 4,
-      "slots": 8,
-      "type": "buff",
-      "points": 8,
-      "weight": 2,
-      "actionType": "action",
-      "range": "self",
-      "energy": 0,
-      "category": "core"
     }
   ],
   "utility": [
@@ -369,20 +355,6 @@
       "actionType": "reaction",
       "range": "self",
       "energy": 0,
-      "category": "utility"
-    },
-    {
-      "id": 32,
-      "name": "Scrambler",
-      "description": "Los drones y mechas tienen desventaja al tratar de dispararte debido a interferencias generadas por tu mecha. Es de un solo uso. Al gastar 5 de energía, puedes activar un scrambler mediante una acción, instantáneamente haciendo que un oponente que esté dentro de tu línea de visión posea desventaja en sus roles de efectividad usando armas a distancia contra ti por 1 turno.",
-      "healthDivisor": 15,
-      "slots": 0,
-      "type": "electronic",
-      "points": 3,
-      "actionType": "action",
-      "range": "self",
-      "energy": 5,
-      "oneTimeUse": true,
       "category": "utility"
     },
     {
