@@ -11,6 +11,7 @@ interface ComponentCreatorProps {
   onUpdate: (index: number, comp: PremadeData) => void;
   onRemove: (index: number) => void;
   premadeData: Record<string, PremadeData[]>;
+  rawPremades: Record<string, PremadeData[]>;
   premadeEdits: Record<number, PremadeData>;
   onUpdatePremadeEdit: (comp: PremadeData) => void;
   onRemovePremadeEdit: (id: number) => void;
@@ -56,6 +57,7 @@ export function ComponentCreator({
   onUpdate,
   onRemove,
   premadeData,
+  rawPremades,
   premadeEdits,
   onUpdatePremadeEdit,
   onRemovePremadeEdit,
@@ -92,14 +94,23 @@ export function ComponentCreator({
     }
   }, [tab]);
 
+  const prevPremadeDataRef = useRef(premadeData);
+  const prevFormIdRef = useRef<number | null>(null);
+
   useEffect(() => {
-    if (editingCustomIdx === null && form.id > 0 && !(form.id in premadeEdits)) {
-      const base = findPremadeById(premadeData, form.id);
-      if (base && JSON.stringify(base) !== JSON.stringify(form)) {
-        setForm({ ...base });
-      }
+    if (editingCustomIdx !== null || form.id <= 0 || form.id in premadeEdits) {
+      prevPremadeDataRef.current = premadeData;
+      prevFormIdRef.current = form.id;
+      return;
     }
-  }, [premadeEdits, form.id, editingCustomIdx, premadeData, form]);
+    const selectedNew = form.id !== prevFormIdRef.current;
+    const dataChanged = premadeData !== prevPremadeDataRef.current;
+    prevPremadeDataRef.current = premadeData;
+    prevFormIdRef.current = form.id;
+    if (!selectedNew && !dataChanged) return;
+    const base = findPremadeById(premadeData, form.id);
+    if (base) setForm({ ...base });
+  }, [premadeEdits, form.id, editingCustomIdx, premadeData]);
 
   function setField<K extends keyof PremadeData>(key: K, value: PremadeData[K]) {
     setForm(prev => ({ ...prev, [key]: value }));
@@ -215,28 +226,42 @@ export function ComponentCreator({
     reader.onload = () => {
       try {
         const data = JSON.parse(reader.result as string);
-        if (data && typeof data === 'object' && 'premadeComponents' in data) {
-          onMassImport(data);
-          setEditingCustomIdx(null);
-          setForm(defaultPremade('core'));
-          setEditingArchetypeIdx(null);
-          setArchetypeForm({ label: '', cost: 0 });
-          setEditingModelIdx(null);
-          setModelForm({ name: '', scales: [] });
-          setSelectedScale(null);
-          setScaleNameInput('');
-          setScaleForm({});
+        if (data && typeof data === 'object') {
+          const hasRaw = 'core' in data || 'utility' in data || 'weapon' in data;
+          if (hasRaw || 'premadeComponents' in data) {
+            console.log('Importing data:', Object.keys(data));
+            onMassImport(data);
+            setEditingCustomIdx(null);
+            setForm(defaultPremade('core'));
+            setEditingArchetypeIdx(null);
+            setArchetypeForm({ label: '', cost: 0 });
+            setEditingModelIdx(null);
+            setModelForm({ name: '', scales: [] });
+            setSelectedScale(null);
+            setScaleNameInput('');
+            setScaleForm({});
+          } else {
+            console.error('Unrecognised import format:', Object.keys(data));
+          }
+        } else {
+          console.error('Import file is not an object');
         }
-      } catch { /* ignore */ }
+      } catch (err) {
+        console.error('Import parse error:', err);
+      }
     };
     reader.readAsText(file);
     e.target.value = '';
   }
 
   function handleMassExport() {
+    const categorized: Record<string, PremadeData[]> = {};
+    for (const [cat, comps] of Object.entries(rawPremades)) {
+      categorized[cat] = (comps ?? []).map(c => ({ ...c, category: cat }));
+    }
     const data = {
-      customComponents,
-      premadeComponents: premadeData,
+      ...categorized,
+      customComponents: customComponents.map(c => ({ ...c })),
       archetypes,
       models,
       scales: scaleMods,
@@ -599,10 +624,7 @@ export function ComponentCreator({
                   <button
                     key={cat}
                     className={`cat-tab ${form.category === cat ? 'active' : ''}`}
-                    onClick={() => {
-                      setForm(prev => ({ ...defaultPremade(cat), ...prev }));
-                      setEditingCustomIdx(null);
-                    }}
+                    onClick={() => setForm(prev => ({ ...prev, category: cat }))}
                   >
                     {cat.charAt(0).toUpperCase() + cat.slice(1)}
                   </button>

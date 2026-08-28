@@ -253,14 +253,13 @@ export function mergePremades(
   edits: Record<number, PremadeData>,
 ): Record<string, PremadeData[]> {
   const byCat: Record<string, PremadeData[]> = {};
-  const add = (c: PremadeData) => {
-    const cat = c.category ?? 'core';
-    (byCat[cat] ??= []).push(c);
-  };
-  for (const comps of Object.values(base)) {
+  for (const [cat, comps] of Object.entries(base)) {
     for (const c of comps ?? []) {
       const edit = edits[c.id];
-      add(edit ? { ...c, ...edit } : c);
+      const merged = edit ? { ...c, ...edit } : { ...c };
+      const finalCat = merged.category ?? cat;
+      merged.category = finalCat;
+      (byCat[finalCat] ??= []).push(merged);
     }
   }
   return byCat;

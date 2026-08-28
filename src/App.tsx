@@ -56,12 +56,23 @@ function saveToAPI(data: UserData) {
 }
 
 function parseData(raw: Record<string, unknown>): UserData {
+  const premades: Record<string, PremadeData[]> = {};
+  if (raw.core || raw.utility || raw.weapon) {
+    premades.core = (raw.core as PremadeData[]) ?? [];
+    premades.utility = (raw.utility as PremadeData[]) ?? [];
+    premades.weapon = (raw.weapon as PremadeData[]) ?? [];
+  } else if (raw.premadeComponents && typeof raw.premadeComponents === 'object') {
+    const pc = raw.premadeComponents as Record<string, unknown>;
+    premades.core = (pc.core as PremadeData[]) ?? [];
+    premades.utility = (pc.utility as PremadeData[]) ?? [];
+    premades.weapon = (pc.weapon as PremadeData[]) ?? [];
+  } else {
+    premades.core = [];
+    premades.utility = [];
+    premades.weapon = [];
+  }
   return {
-    premades: {
-      core: (raw.core as PremadeData[]) ?? [],
-      utility: (raw.utility as PremadeData[]) ?? [],
-      weapon: (raw.weapon as PremadeData[]) ?? [],
-    },
+    premades,
     customComponents: (raw.customComponents as PremadeData[]) ?? [],
     archetypes: (raw.archetypes as ArchetypeOption[]) ?? DEFAULT_ARCHETYPES,
     models: (raw.models as ModelOption[]) ?? DEFAULT_MODELS,
@@ -238,11 +249,12 @@ export function App() {
       scales: parsed.scales,
       premadeEdits: parsed.premadeEdits,
     };
+    console.log('Mass import payload:', Object.keys(payload), 'core:', (payload.core as unknown[])?.length, 'weapon:', (payload.weapon as unknown[])?.length);
     fetch('/api/data', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
-    }).catch(console.error);
+    }).then(r => r.json()).then(d => console.log('Import saved:', d)).catch(err => console.error('Import save failed:', err));
     setPremades(parsed.premades);
     setCustomComponents(parsed.customComponents);
     setPremadeEdits(parsed.premadeEdits);
@@ -296,6 +308,7 @@ export function App() {
             onUpdate={updateCustom}
             onRemove={removeCustom}
             premadeData={mergedPremades}
+            rawPremades={premades}
             premadeEdits={premadeEdits}
             onUpdatePremadeEdit={updatePremadeEdit}
             onRemovePremadeEdit={removePremadeEdit}
