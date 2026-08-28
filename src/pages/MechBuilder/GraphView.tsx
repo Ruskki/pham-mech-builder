@@ -50,8 +50,8 @@ function simulate(
   edges: FlatEdge[],
 ): FlatNode[] {
   const reps = 5000;
-  const repulsion = 5000;
-  const attraction = 0.005;
+  const repulsion = 15000;
+  const attraction = 0.001;
   const damping = 0.9;
   const center = 0.02;
 
@@ -108,6 +108,24 @@ function simulate(
   }
 
   return nodes;
+}
+
+function wrapLabel(text: string, maxLen: number): string[] {
+  if (text.length <= maxLen) return [text];
+  const words = text.split(' ');
+  const lines: string[] = [];
+  let line = '';
+  for (const w of words) {
+    const test = line ? line + ' ' + w : w;
+    if (test.length > maxLen && line) {
+      lines.push(line);
+      line = w;
+    } else {
+      line = test;
+    }
+  }
+  if (line) lines.push(line);
+  return lines;
 }
 
 const CAT_COLORS: Record<string, string> = {
@@ -177,7 +195,7 @@ export function GraphView({ root }: GraphViewProps) {
                 key={`arrow-${e.source}-${e.target}`}
                 id={`arrow-${e.source}-${e.target}`}
                 viewBox="0 0 10 10"
-                refX={20}
+                refX={48}
                 refY={5}
                 markerWidth={6}
                 markerHeight={6}
@@ -212,7 +230,7 @@ export function GraphView({ root }: GraphViewProps) {
           const isHovered = n.id === hoveredId;
           const isConnected = hoveredId && connected.has(n.id);
           const opacity = !hoveredId || isConnected ? 1 : 0.3;
-          const r = isHovered ? 28 : 22;
+          const r = isHovered ? 47 : 41;
           return (
             <g
               key={n.id}
@@ -224,19 +242,25 @@ export function GraphView({ root }: GraphViewProps) {
             >
               <circle
                 r={r}
-                fill={CAT_COLORS[n.category] ?? '#888'}
+                fill={n.id === root?.id ? '#e2c541' : (CAT_COLORS[n.category] ?? '#888')}
                 stroke={isHovered ? '#fff' : 'transparent'}
                 strokeWidth={2}
               />
               <text
                 textAnchor="middle"
-                dy="0.35em"
                 fill="#111"
-                fontSize={10}
+                fontSize={12}
                 fontWeight={600}
                 style={{ pointerEvents: 'none' }}
               >
-                {n.label.length > 10 ? n.label.slice(0, 9) + '…' : n.label}
+                {wrapLabel(n.label, 14).map((line, i, arr) => {
+                  const offset = (i - (arr.length - 1) / 2) * 1.2;
+                  return (
+                    <tspan key={i} x={0} dy={i === 0 ? `${offset}em` : '1.2em'}>
+                      {line}
+                    </tspan>
+                  );
+                })}
               </text>
             </g>
           );
