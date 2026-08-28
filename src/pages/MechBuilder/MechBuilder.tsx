@@ -18,6 +18,7 @@ interface MechBuilderProps {
   archetypes: ArchetypeOption[];
   models: ModelOption[];
   premadeData: Record<string, PremadeData[]>;
+  maxPoints: number;
 }
 
 type SlotTarget = { parentId: string | null; slotIndex: number | null }; 
@@ -29,9 +30,11 @@ function sumComponentPoints(node: ComponentNode | null): number {
   return t;
 }
 
-export function MechBuilder({ customComponents, mechRoot: rootNode, onMechRootChange: setRootNode, scale, setScale, scaleMods, setScaleMods, archetypes, models, premadeData }: MechBuilderProps) {
+export function MechBuilder({ customComponents, mechRoot: rootNode, onMechRootChange: setRootNode, scale, setScale, scaleMods, setScaleMods, archetypes, models, premadeData, maxPoints }: MechBuilderProps) {
   const [pickingTarget, setPickingTarget] = useState<SlotTarget | null>(null);
   const [viewMode, setViewMode] = useState<'tree' | 'graph'>('tree');
+  const [mechName, setMechName] = useState('mech-name');
+  const [totalPoints, setTotalPoints] = useState(0);
   const importRef = useRef<HTMLInputElement>(null);
 
   const premadeLib = useMemo(() => buildPremadeLib(premadeData), [premadeData]);
@@ -51,7 +54,7 @@ export function MechBuilder({ customComponents, mechRoot: rootNode, onMechRootCh
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'mech-build.json';
+    a.download = `${mechName || 'mech-name'}.json`;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -148,6 +151,13 @@ export function MechBuilder({ customComponents, mechRoot: rootNode, onMechRootCh
         <main className="main-area">
           <div className="builder-bar">
             <div className="bar-io">
+              <input
+                className="mech-name-input"
+                type="text"
+                value={mechName}
+                onChange={e => setMechName(e.target.value)}
+                placeholder="Mech name…"
+              />
               <button className="bar-btn" onClick={exportMech} disabled={!rootNode}>
                 Export Mech
               </button>
@@ -171,6 +181,11 @@ export function MechBuilder({ customComponents, mechRoot: rootNode, onMechRootCh
               </button>
             </div>
           </div>
+          {totalPoints > maxPoints && (
+            <div className="points-warning">
+              Points exceeded: <strong>{totalPoints}</strong> / {maxPoints}
+            </div>
+          )}
           <div className={`view-container ${viewMode === 'graph' ? 'view-graph' : 'view-tree'}`}>
             {viewMode === 'tree' ? (
               rootNode ? (
@@ -188,7 +203,7 @@ export function MechBuilder({ customComponents, mechRoot: rootNode, onMechRootCh
           </div>
         </main>
 
-        <SidePanel componentPoints={componentPoints} mechRoot={rootNode} scale={scale} setScale={setScale} scaleMods={scaleMods} setScaleMods={setScaleMods} archetypes={archetypes} models={models} />
+        <SidePanel componentPoints={componentPoints} mechRoot={rootNode} scale={scale} setScale={setScale} scaleMods={scaleMods} setScaleMods={setScaleMods} archetypes={archetypes} models={models} onTotalChange={setTotalPoints} />
       </div>
 
       {pickingTarget && (

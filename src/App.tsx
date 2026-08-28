@@ -4,16 +4,18 @@ import { buildPremadeLib, compactTree, expandTree, mergePremades, premadeToCompo
 import { MechBuilder } from './pages/MechBuilder/MechBuilder';
 import { ComponentCreator } from './pages/ComponentCreator/ComponentCreator';
 import { CharacterSheet } from './pages/CharacterSheet/CharacterSheet';
+import { Settings } from './pages/Settings/Settings';
 import { DEFAULT_SCALE_MODIFIERS, DEFAULT_ARCHETYPES, DEFAULT_MODELS } from './data/defaults';
 import './index.css';
 import './App.css';
 
-type Page = 'creator' | 'builder' | 'sheet';
+type Page = 'creator' | 'builder' | 'sheet' | 'settings';
 
 const PAGES: { key: Page; label: string }[] = [
   { key: 'creator', label: 'Component Creator' },
   { key: 'builder', label: 'Mech Builder' },
   { key: 'sheet', label: 'Character Sheet' },
+  { key: 'settings', label: 'Settings' },
 ];
 
 interface UserData {
@@ -129,6 +131,9 @@ export function App() {
   const [archetypes, setArchetypes] = useState<ArchetypeOption[]>(DEFAULT_ARCHETYPES);
   const [models, setModels] = useState<ModelOption[]>(DEFAULT_MODELS);
   const [premadeEdits, setPremadeEdits] = useState<Record<number, PremadeData>>({});
+  const [maxPoints, setMaxPoints] = useState<number>(() => {
+    try { return Number(localStorage.getItem('pham-mech-builder-max-points')) || 300; } catch { return 300; }
+  });
 
   const dataRef = useRef<UserData>(EMPTY_DATA);
 
@@ -174,6 +179,10 @@ export function App() {
       setScale(Object.keys(scaleMods)[0] ?? 'HG');
     }
   }, [scaleMods, scale]);
+
+  useEffect(() => {
+    try { localStorage.setItem('pham-mech-builder-max-points', String(maxPoints)); } catch {}
+  }, [maxPoints]);
 
   const updatePremadeEdit = useCallback((comp: PremadeData) => {
     setPremadeEdits(prev => ({ ...prev, [comp.id]: comp }));
@@ -347,10 +356,14 @@ export function App() {
             archetypes={archetypes}
             models={models}
             premadeData={mergedPremades}
+            maxPoints={maxPoints}
           />
         )}
         {page === 'sheet' && (
           <CharacterSheet mechRoot={mechRoot} scale={scale} scaleMods={scaleMods} />
+        )}
+        {page === 'settings' && (
+          <Settings maxPoints={maxPoints} onMaxPointsChange={setMaxPoints} />
         )}
       </div>
     </div>

@@ -65,9 +65,10 @@ interface SidePanelProps {
   setScaleMods: (mods: Record<ScaleType, ScaleModifiers>) => void;
   archetypes: ArchetypeOption[];
   models?: ModelOption[];
+  onTotalChange?: (total: number) => void;
 }
 
-export function SidePanel({ componentPoints = 0, mechRoot = null, scale, setScale, scaleMods, setScaleMods, archetypes, models = [] }: SidePanelProps) {
+export function SidePanel({ componentPoints = 0, mechRoot = null, scale, setScale, scaleMods, setScaleMods, archetypes, models = [], onTotalChange }: SidePanelProps) {
   const [bases, setBases] = useState<StatBases>(loadBases);
   const [selected, setSelected] = useState<Set<string>>(new Set([archetypes[0]?.label ?? 'Striker']));
   const [spec, setSpec] = useState<string | null>(archetypes[0]?.label ?? 'Striker');
@@ -134,6 +135,10 @@ export function SidePanel({ componentPoints = 0, mechRoot = null, scale, setScal
     .reduce((s, a) => s + a.cost, 0);
 
   const total = archetypeCost + componentPoints;
+
+  useEffect(() => {
+    onTotalChange?.(total);
+  }, [total, onTotalChange]);
 
   return (
     <div className="side-panel">
