@@ -329,7 +329,9 @@ export function App() {
           className="app-shutdown"
           title="Stop the server"
           onClick={() => {
-            fetch('/api/shutdown', { method: 'POST' });
+            fetch('/api/shutdown', { method: 'POST' }).then(() => {
+              setTimeout(() => window.location.reload(), 500);
+            });
           }}
         >
           Shutdown

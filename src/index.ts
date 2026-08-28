@@ -35,7 +35,10 @@ const server = serve({
 
     "/api/shutdown": {
       async POST() {
-        setTimeout(() => server.stop(), 100);
+        setTimeout(() => {
+          server.stop(true);
+          process.exit(0);
+        }, 100);
         return Response.json({ message: "Server shutting down" });
       },
     },
