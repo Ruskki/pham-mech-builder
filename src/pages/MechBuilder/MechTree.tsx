@@ -17,9 +17,13 @@ const CAT_COLORS: Record<string, string> = {
 function ComponentCard({
   node,
   onRemove,
+  onToggleSlots,
+  slotsCollapsed,
 }: {
   node: ComponentNode;
   onRemove: (id: string) => void;
+  onToggleSlots: () => void;
+  slotsCollapsed: boolean;
 }) {
   const { component } = node;
   const color = CAT_COLORS[component.category] ?? '#888';
@@ -27,8 +31,15 @@ function ComponentCard({
 
   return (
     <div className="comp-card" style={{ borderLeftColor: color }}>
-      <div className="comp-card-header" onClick={() => setCollapsed(v => !v)} style={{ cursor: 'pointer' }}>
-        <span className="collapse-arrow">{collapsed ? '▸' : '▾'}</span>
+      <div
+        className="comp-card-header"
+        onClick={onToggleSlots}
+        onContextMenu={e => { e.preventDefault(); setCollapsed(v => !v); }}
+        style={{ cursor: 'pointer' }}
+      >
+        {node.children.some(Boolean) && (
+          <span className="collapse-arrow">{slotsCollapsed ? '▸' : '▾'}</span>
+        )}
         <span className="comp-cat-badge" style={{ background: color }}>
           {component.category}
         </span>
@@ -83,13 +94,19 @@ function ComponentCard({
 }
 
 export function MechTree({ node, onSelectSlot, onRemove }: MechTreeProps) {
+  const [slotsCollapsed, setSlotsCollapsed] = useState(false);
   if (!node) return null;
 
   return (
     <div className="tree-node">
-      <ComponentCard node={node} onRemove={onRemove} />
+      <ComponentCard
+        node={node}
+        onRemove={onRemove}
+        onToggleSlots={() => setSlotsCollapsed(v => !v)}
+        slotsCollapsed={slotsCollapsed}
+      />
 
-      {node.children.length > 0 && (
+      {!slotsCollapsed && node.children.length > 0 && (
         <div className="slots-container">
           {node.children.map((child, index) => (
             <div key={index} className="slot-wrapper">
