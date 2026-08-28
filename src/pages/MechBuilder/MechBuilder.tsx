@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useMemo } from 'react';
 import type { MechComponent, ComponentNode, PremadeData, StoredBuild, ScaleType, ScaleModifiers, ArchetypeOption, ModelOption } from '../../types';
-import { createNode, addToSlot, removeById, buildPremadeLib, expandTree, compactTree, collectCustomIds, premadeToComponent } from '../../types';
+import { createNode, addToSlot, removeById, buildPremadeLib, expandTree, compactTree, collectCustomIds, premadeToComponent, countComponentById } from '../../types';
 import { SidePanel } from './SidePanel';
 import { MechTree, RootSlot } from './MechTree';
 import { GraphView } from './GraphView';
@@ -88,6 +88,13 @@ export function MechBuilder({ customComponents, mechRoot: rootNode, onMechRootCh
   }
 
   function addComponent(component: MechComponent, target: SlotTarget) {
+    if (component.maxCount && component.maxCount > 0) {
+      const current = countComponentById(rootNode, component.id);
+      if (current >= component.maxCount) {
+        alert(`Cannot add more ${component.name} — limit is ${component.maxCount}.`);
+        return;
+      }
+    }
     const newNode = createNode(component);
     const { parentId, slotIndex } = target;
 

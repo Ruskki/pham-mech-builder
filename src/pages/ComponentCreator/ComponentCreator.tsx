@@ -664,6 +664,14 @@ export function ComponentCreator({
                     onChange={e => setField('slots', Number(e.target.value))}
                   />
                 </label>
+                <label>
+                  Max Count
+                  <input
+                    type="number" min={0} placeholder="0 = unlimited"
+                    value={form.maxCount ?? ''}
+                    onChange={e => setField('maxCount', e.target.value ? Number(e.target.value) : undefined)}
+                  />
+                </label>
               </div>
 
               <div className="form-row">

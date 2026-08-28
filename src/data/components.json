@@ -248,7 +248,8 @@
       "slots": 4,
       "type": "buff",
       "points": 3,
-      "category": "core"
+      "category": "core",
+      "maxCount": 1
     },
     {
       "id": 65,

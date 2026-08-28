@@ -49,6 +49,7 @@ export interface BaseComponentFields {
   sigMod?: number;
   rendMod?: number;
   movement?: number;
+  maxCount?: number;
 }
 
 export interface CoreComponent extends BaseComponentFields {
@@ -114,6 +115,13 @@ export function createNode(component: MechComponent): ComponentNode {
   };
 }
 
+export function countComponentById(node: ComponentNode | null, targetId: number): number {
+  if (!node) return 0;
+  let count = node.component.id === targetId ? 1 : 0;
+  for (const child of node.children) count += countComponentById(child, targetId);
+  return count;
+}
+
 export function addToSlot(
   root: ComponentNode,
   parentId: string,
@@ -171,6 +179,7 @@ export interface PremadeData {
   ammoCost?: number;
   weaponType?: string;
   weaponSubtype?: string;
+  maxCount?: number;
 }
 
 export function defaultPremade(category: ComponentCategory, id = 0): PremadeData {
@@ -200,6 +209,7 @@ export function premadeToComponent(data: PremadeData): MechComponent {
     sigMod: data.sigMod,
     rendMod: data.rendMod,
     movement: data.movement,
+    maxCount: data.maxCount,
   };
   switch (data.category) {
     case 'core':
