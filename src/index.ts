@@ -1,15 +1,17 @@
 import { serve } from "bun";
-import { readFileSync, writeFileSync } from "fs";
+import { readFileSync, writeFileSync, existsSync } from "fs";
 import index from "./index.html";
+import defaultData from "./data/components.json";
 
-const DATA_FILE = new URL("../src/data/components.json", import.meta.url).pathname;
+const DATA_FILE = "components.json";
 
 function loadData(): Record<string, unknown> {
-  try {
-    return JSON.parse(readFileSync(DATA_FILE, "utf-8"));
-  } catch {
-    return { core: [], utility: [], weapon: [] };
+  if (existsSync(DATA_FILE)) {
+    try {
+      return JSON.parse(readFileSync(DATA_FILE, "utf-8"));
+    } catch { /* fall through */ }
   }
+  return defaultData as Record<string, unknown>;
 }
 
 function saveData(data: Record<string, unknown>): void {
