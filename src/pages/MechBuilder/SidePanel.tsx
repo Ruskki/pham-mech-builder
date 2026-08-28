@@ -28,7 +28,7 @@ type StatBases = Record<string, number>;
 
 function defaultBases(): StatBases {
   const b: StatBases = {};
-  for (const s of MAIN_STATS) b[s.key] = 0;
+  for (const s of MAIN_STATS) b[s.key] = 5;
   return b;
 }
 
