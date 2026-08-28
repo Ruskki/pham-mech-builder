@@ -100,6 +100,20 @@ function HealthRow({ node, conModifier, healthMod, hpMap, onSetHp }: HealthRowPr
   const currentHp = hpMap[node.id] ?? totalHp;
   const over = currentHp > totalHp;
   const color = CAT_COLORS[comp.category] ?? '#888';
+  const [deltaInput, setDeltaInput] = useState('');
+
+  function applyDelta() {
+    const raw = deltaInput.trim();
+    if (!raw) return;
+    if (raw.startsWith('+') || raw.startsWith('-')) {
+      const n = Number(raw);
+      if (!isNaN(n)) onSetHp(node.id, Math.max(0, currentHp + n));
+    } else {
+      const n = Number(raw);
+      if (!isNaN(n)) onSetHp(node.id, Math.max(0, n));
+    }
+    setDeltaInput('');
+  }
 
   return (
     <div className="health-tree">
@@ -111,12 +125,17 @@ function HealthRow({ node, conModifier, healthMod, hpMap, onSetHp }: HealthRowPr
         <span className="hr-div">{comp.healthDivisor}</span>
         <span className="hr-current">
           <input
-            type="number"
-            min={0}
+            type="text"
             className="hr-input"
-            value={currentHp}
-            onChange={e => onSetHp(node.id, Math.max(0, Number(e.target.value)))}
+            placeholder="+/-"
+            value={deltaInput}
+            onChange={e => setDeltaInput(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') applyDelta(); }}
+            onBlur={applyDelta}
           />
+        </span>
+        <span className="hr-current" style={{ fontSize: '0.8rem', color: '#667788' }}>
+          {currentHp}
         </span>
         <span className={`hr-total ${over ? 'hr-over' : ''}`}>{totalHp}</span>
       </div>
@@ -195,6 +214,7 @@ export function CharacterSheet({ mechRoot, scale = 'HG', scaleMods = {} }: Chara
                 <span className="hr-name">Component</span>
                 <span className="hr-type">Type</span>
                 <span className="hr-div">Div</span>
+                <span className="hr-current">Apply</span>
                 <span className="hr-current">Current HP</span>
                 <span className="hr-total">Total</span>
               </div>
@@ -203,6 +223,7 @@ export function CharacterSheet({ mechRoot, scale = 'HG', scaleMods = {} }: Chara
                 <span className="hr-name">Total</span>
                 <span className="hr-type" />
                 <span className="hr-div" />
+                <span className="hr-current" />
                 <span className="hr-current" />
                 <span className="hr-total">{totalMechHp}</span>
               </div>
