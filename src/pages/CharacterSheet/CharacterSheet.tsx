@@ -1,5 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import type { ComponentNode, ScaleType, ScaleModifiers } from '../../types';
+import { localizedName } from '../../types';
+import { useLang } from '../../i18n';
 import './CharacterSheet.css';
 
 const STATS_STORAGE_KEY = 'pham-mech-builder-stats';
@@ -96,6 +98,7 @@ interface HealthRowProps {
 
 function HealthRow({ node, conModifier, healthMod, hpMap, onSetHp }: HealthRowProps) {
   const comp = node.component;
+  const { lang } = useLang();
   const totalHp = useMemo(() => calcHp(conModifier, comp.healthDivisor, healthMod), [conModifier, comp.healthDivisor, healthMod]);
   const currentHp = hpMap[node.id] ?? totalHp;
   const over = currentHp > totalHp;
@@ -118,7 +121,7 @@ function HealthRow({ node, conModifier, healthMod, hpMap, onSetHp }: HealthRowPr
   return (
     <div className="health-tree">
       <div className={`health-row ${currentHp <= 0 ? 'hr-destroyed' : ''}`}>
-        <span className="hr-name" title={comp.name}>{comp.name || 'Unnamed'}</span>
+        <span className="hr-name" title={comp.name}>{localizedName(comp, lang) || 'Unnamed'}</span>
         <span className="hr-type">
           <span className="hr-type-badge" style={{ background: color }}>{comp.category}</span>
         </span>

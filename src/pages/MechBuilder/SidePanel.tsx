@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { ComponentNode, ScaleType, ScaleModifiers, ArchetypeOption, ModelOption } from '../../types';
+import { localizedArchetypeLabel } from '../../types';
+import { useLang } from '../../i18n';
 import { SCALES } from '../../data/defaults';
 import './SidePanel.css';
 
@@ -77,6 +79,7 @@ export function SidePanel({ componentPoints = 0, mechRoot = null, scale, setScal
   const [selected, setSelected] = useState<Set<string>>(new Set([archetypes[0]?.label ?? 'Striker']));
   const [spec, setSpec] = useState<string | null>(archetypes[0]?.label ?? 'Striker');
   const [model, setModel] = useState('Prototype');
+  const { lang } = useLang();
 
   useEffect(() => {
     localStorage.setItem(STATS_STORAGE_KEY, JSON.stringify(bases));
@@ -253,7 +256,7 @@ export function SidePanel({ componentPoints = 0, mechRoot = null, scale, setScal
                 <span className="meta-marker">
                   {isSpec ? '★' : isSelected ? '[x]' : '[ ]'}
                 </span>
-                <span>{a.label}</span>
+                <span>{localizedArchetypeLabel(a, lang)}</span>
                 <span className="meta-pts">{a.cost}p</span>
               </button>
             );

@@ -75,3 +75,22 @@
   background: #e94560;
   color: #16213e;
 }
+
+.lang-toggle {
+  background: transparent;
+  border: 1px solid #4fc3f7;
+  color: #4fc3f7;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: 0.15s;
+  font-family: inherit;
+  letter-spacing: 0.05em;
+}
+
+.lang-toggle:hover {
+  background: #4fc3f7;
+  color: #16213e;
+}

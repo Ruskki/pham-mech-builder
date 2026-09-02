@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import type { ComponentNode } from '../../types';
+import { localizedName, localizedDesc } from '../../types';
+import { useLang } from '../../i18n';
 import './MechTree.css';
 
 interface MechTreeProps {
@@ -26,8 +28,11 @@ function ComponentCard({
   slotsCollapsed: boolean;
 }) {
   const { component } = node;
+  const { lang } = useLang();
   const color = CAT_COLORS[component.category] ?? '#888';
   const [collapsed, setCollapsed] = useState(true);
+  const displayName = localizedName(component, lang);
+  const displayDesc = localizedDesc(component, lang);
 
   return (
     <div className="comp-card" style={{ borderLeftColor: color }}>
@@ -43,7 +48,7 @@ function ComponentCard({
         <span className="comp-cat-badge" style={{ background: color }}>
           {component.category}
         </span>
-        <span className="comp-name">{component.name || 'Unnamed'}</span>
+        <span className="comp-name">{displayName || 'Unnamed'}</span>
         <span className="comp-stat" style={{ marginRight: '0.5rem' }}>{component.points}p</span>
         <button className="remove-btn" onClick={e => { e.stopPropagation(); onRemove(node.id); }} title="Remove">
           ✕
@@ -68,8 +73,8 @@ function ComponentCard({
           {component.sigMod !== undefined && <span className="comp-stat">Sig: {component.sigMod > 0 ? '+' : ''}{component.sigMod}</span>}
           {component.rendMod !== undefined && <span className="comp-stat">Rend: {component.rendMod > 0 ? '+' : ''}{component.rendMod}</span>}
           {component.movement !== undefined && <span className="comp-stat">Mov: {component.movement}</span>}
-          {component.description && (
-            <p className="comp-desc">{component.description}</p>
+          {displayDesc && (
+            <p className="comp-desc">{displayDesc}</p>
           )}
           {component.category === 'utility' && (
             <>

@@ -8,7 +8,17 @@
       "slots": 3,
       "type": "buff",
       "points": 1,
-      "category": "core"
+      "category": "core",
+      "languages": {
+        "en": {
+          "name": "Hydraulic Coupler",
+          "description": "Device capable of coupling 3 components to itself. Grants 3 extra slots to the location where it's installed. Multiple couplers can be chained together; however, if one is destroyed by an attack with damage greater than the HP it had before being destroyed, the connected coupler will receive the remaining damage."
+        },
+        "es": {
+          "name": "Acoplador hidráulico",
+          "description": "Dispositivo capaz de acoplar 3 componentes a sí mismo. Le brinda 3 slots extra al lugar en donde esté instalado. Es posible acoplar múltiples acopladores entre sí, sin embargo si uno es destruido por un ataque con un daño mayor a la cantidad de vida que poseía antes de ser destruido, el acoplador al cual está conectado recibirá el daño restante."
+        }
+      }
     },
     {
       "id": 2,
@@ -18,7 +28,17 @@
       "slots": 1,
       "type": "buff",
       "points": 1,
-      "category": "core"
+      "category": "core",
+      "languages": {
+        "en": {
+          "name": "Temporal Coupler",
+          "description": "Device capable of coupling or decoupling 1 component or weapon to itself. Cannot connect to another temporal or hydraulic coupler."
+        },
+        "es": {
+          "name": "Acoplador temporal",
+          "description": "Dispositivo capaz de acoplar o desacoplar 1 componente o arma en sí mismo. No se puede conectar a otro acoplador temporal o hidráulico."
+        }
+      }
     },
     {
       "id": 3,
@@ -30,7 +50,17 @@
       "points": 5,
       "weight": 2,
       "movement": 5,
-      "category": "core"
+      "category": "core",
+      "languages": {
+        "en": {
+          "name": "Wings",
+          "description": "Articulated appendage that increases horizontal gliding distance and reduces the horizontal distance needed to jump per thruster connected to itself. Has 1 component slot. +5 ft Horizontal, +5 ft Vertical"
+        },
+        "es": {
+          "name": "Alas",
+          "description": "Apéndice sin articulación aumenta la distancia horizontal de planeo y reduce la distancia horizontal que se necesita para saltar por cada propulsor conectado a sí mismo, y posee 1 slot de componentes. +5 ft Horizontal, +5 ft Vertical"
+        }
+      }
     },
     {
       "id": 4,
@@ -41,7 +71,17 @@
       "type": "buff",
       "points": 3,
       "weight": 4,
-      "category": "core"
+      "category": "core",
+      "languages": {
+        "en": {
+          "name": "Bomb Storage",
+          "description": "Increases the number of missiles/grenades/bombs/mines etc per storage equipped. Requires a bonus action to reload bombs used by your weapon. +4 to your mech's weight unless destroyed or fully used. +12 to missiles/grenades/bombs/mines that your weapons can use."
+        },
+        "es": {
+          "name": "Almacén de bombas",
+          "description": "Aumenta la cantidad de misiles/granadas/bombas/minas etc por cada almacén, necesitas una acción bonus para recargar las bombas usadas en tu arma. +4 en el peso de tu mecha a menos que sea destruido o usado completamente. +12 en misiles/granadas/bombas/minas etc que puedan usar tus armas"
+        }
+      }
     },
     {
       "id": 5,
@@ -52,7 +92,17 @@
       "type": "buff",
       "points": 3,
       "weight": 2,
-      "category": "core"
+      "category": "core",
+      "languages": {
+        "en": {
+          "name": "Ammunition Storage",
+          "description": "Increases the amount of ammunition your projectile weapons have per storage equipped. Requires a bonus action to reload ammunition used by your weapon. +2 to your mech's weight unless destroyed or fully used. +60 to projectile ammunition your weapons can use regardless of type (light or medium)."
+        },
+        "es": {
+          "name": "Almacén de Munición",
+          "description": "Aumenta la cantidad de munición que poseen tus armas proyectiles por cada almacén equipado, necesitas una acción bonus para recargar la munición usada por tu arma. +2 en el peso de tu mecha a menos que sea destruido o usado completamente. +60 en la munición proyectil que puedan usar tus armas sin importar su tipo (Ligero o mediano)"
+        }
+      }
     },
     {
       "id": 6,
@@ -64,7 +114,17 @@
       "points": 3,
       "weight": 2,
       "conMod": 2,
-      "category": "core"
+      "category": "core",
+      "languages": {
+        "en": {
+          "name": "Armor",
+          "description": "Physical protective component. Each individual armor protects 3 components around where it was installed. When destroyed, its HP is not removed from the mech's total HP. Cannot be repaired. +1 Constitution, +2 Weight"
+        },
+        "es": {
+          "name": "Armadura",
+          "description": "Componente protector físico. Cada armadura individual protege 3 componentes que están alrededor de donde fue instalado. Al ser destruida su vida no es removida de la vida total del mecha. No puede ser reparada. +1 Constitución, +2 Peso"
+        }
+      }
     },
     {
       "id": 7,
@@ -74,7 +134,17 @@
       "slots": 0,
       "type": "buff",
       "points": 3,
-      "category": "core"
+      "category": "core",
+      "languages": {
+        "en": {
+          "name": "Battery",
+          "description": "You generate energy each turn up to a maximum of 10. You can use a bonus action to fully recharge a battery using energy from your power source. +2 energy per turn."
+        },
+        "es": {
+          "name": "Batería",
+          "description": "Generas energía por cada turno hasta un máximo de 10. Puedes usar una acción bonus para recargar una batería completamente, utilizando la energía de tu fuente de poder. +2 energía cada turno."
+        }
+      }
     },
     {
       "id": 8,
@@ -85,7 +155,17 @@
       "type": "buff",
       "points": 1,
       "radMod": 1,
-      "category": "core"
+      "category": "core",
+      "languages": {
+        "en": {
+          "name": "Camera",
+          "description": "Cameras allow you to see from your mech's point of view. You have 2 view modes: general and specific. +1 Radiofrequency"
+        },
+        "es": {
+          "name": "Cámara",
+          "description": "Las cámaras te permiten ver desde el punto de vista de tu mecha. Posees 2 modos de vista, general y específico. +1 Radiofrecuencia"
+        }
+      }
     },
     {
       "id": 9,
@@ -96,7 +176,17 @@
       "type": "buff",
       "points": 3,
       "attrRange": "50 ft",
-      "category": "core"
+      "category": "core",
+      "languages": {
+        "en": {
+          "name": "Thermal Camera",
+          "description": "Allows you to maintain line of sight on a target through smoke, storms, or dust."
+        },
+        "es": {
+          "name": "Cámara térmica",
+          "description": "Te permite no perder tu línea de visión de un objetivo siempre y cuando sea a través de humo, una tormenta o polvo."
+        }
+      }
     },
     {
       "id": 10,
@@ -107,7 +197,17 @@
       "type": "buff",
       "points": 1,
       "weight": 2,
-      "category": "core"
+      "category": "core",
+      "languages": {
+        "en": {
+          "name": "Limb",
+          "description": "Articulated appendage with component slots."
+        },
+        "es": {
+          "name": "Extremidad",
+          "description": "Apéndice articulado con slots para componentes."
+        }
+      }
     },
     {
       "id": 11,
@@ -118,7 +218,17 @@
       "type": "buff",
       "points": 5,
       "weight": 2,
-      "category": "core"
+      "category": "core",
+      "languages": {
+        "en": {
+          "name": "Power Source",
+          "description": "You have 30 base energy, recovering 6 energy every 2 turns. +30 base energy, +15 energy per turn. Provides an additional 5% to your maximum energy."
+        },
+        "es": {
+          "name": "Fuente de poder",
+          "description": "Posees una cantidad de energía 30 de energía base, recargas 6 de energía cada 2 turnos. +30 energía base, +15 de energía por turno. Proporciona un 5% adicional a tu cantidad de energía máxima."
+        }
+      }
     },
     {
       "id": 12,
@@ -128,7 +238,17 @@
       "slots": 0,
       "type": "buff",
       "points": 1,
-      "category": "core"
+      "category": "core",
+      "languages": {
+        "en": {
+          "name": "Zoom Lens",
+          "description": "Increases the effective range of your non-melee weapons per lens. Must be at the tip of the component branch. +5ft effective range."
+        },
+        "es": {
+          "name": "Lente de aumento",
+          "description": "Aumenta el rango efectivo de tus armas no melee por cada lente. Deben estar en la punta de la rama de componentes obligatoriamente. +5ft rango efectivo"
+        }
+      }
     },
     {
       "id": 13,
@@ -139,7 +259,17 @@
       "type": "movement",
       "points": 5,
       "weight": 2,
-      "category": "core"
+      "category": "core",
+      "languages": {
+        "en": {
+          "name": "Tracks",
+          "description": "Allows you to move at half speed while prone. Acts as armor for 1 component."
+        },
+        "es": {
+          "name": "Orugas",
+          "description": "Te permite moverte la mitad de tu movimiento mientras estás con el pecho en el suelo. Actúa como una pieza de armadura a 1 componente."
+        }
+      }
     },
     {
       "id": 14,
@@ -151,7 +281,17 @@
       "points": 1,
       "weight": 2,
       "strMod": 1,
-      "category": "core"
+      "category": "core",
+      "languages": {
+        "en": {
+          "name": "Hydraulic Piston",
+          "description": "Increases your strength stat per piston equipped. +1 Strength"
+        },
+        "es": {
+          "name": "Piston Hidraulico",
+          "description": "Aumenta tu stat de fuerza por cada pistón equipado. +1 Fuerza"
+        }
+      }
     },
     {
       "id": 15,
@@ -162,7 +302,17 @@
       "type": "buff",
       "points": 1,
       "movement": 5,
-      "category": "core"
+      "category": "core",
+      "languages": {
+        "en": {
+          "name": "Thrusters",
+          "description": "Allows you to move using your movement amount regardless of whether you have limbs or not. Your total movement increases per thruster. +5 ft Horizontal, +5 ft Horizontal per 5ft vertical in a jump"
+        },
+        "es": {
+          "name": "Propulsores",
+          "description": "Te permite moverte usando tu cantidad de movimiento independientemente de si tienes extremidades o no. Tu movimiento total aumenta por cada propulsor que tengas. +5 ft Horizontal, +5 ft Horizontal por cada 5ft vertical en un salto"
+        }
+      }
     },
     {
       "id": 16,
@@ -172,7 +322,17 @@
       "slots": 0,
       "type": "buff",
       "points": 3,
-      "category": "core"
+      "category": "core",
+      "languages": {
+        "en": {
+          "name": "Rotor Thrusters",
+          "description": "Allows you to move using your movement amount regardless of whether you have limbs or not. Allows movement without speed reduction on aquatic terrain. +15ft underwater, +5 ft Horizontal per 5ft vertical in a jump"
+        },
+        "es": {
+          "name": "Propulsores de rotor",
+          "description": "Te permite moverte usando tu cantidad de movimiento independientemente de si tienes extremidades o no. Permite moverte sin reducción de movimiento en el terreno acuático. +15ft dentro del agua, +5 ft Horizontal por cada 5ft vertical en un salto"
+        }
+      }
     },
     {
       "id": 17,
@@ -183,7 +343,17 @@
       "type": "buff",
       "points": 3,
       "attrRange": "60 ft",
-      "category": "core"
+      "category": "core",
+      "languages": {
+        "en": {
+          "name": "Radar",
+          "description": "Allows you to have vague line of sight against opponents behind solid terrain. You have disadvantage on effectiveness rolls against opponents behind terrain."
+        },
+        "es": {
+          "name": "Radar",
+          "description": "Te permite tener una línea de visión vaga contra oponentes que están detrás de terreno sólido. Posees desventaja en tus roles de efectividad contra oponentes que están detrás de terreno."
+        }
+      }
     },
     {
       "id": 18,
@@ -195,7 +365,17 @@
       "points": 1,
       "weight": 1,
       "dexMod": 1,
-      "category": "core"
+      "category": "core",
+      "languages": {
+        "en": {
+          "name": "Rotor",
+          "description": "Increases your dexterity stat per rotor equipped. +1 Dexterity"
+        },
+        "es": {
+          "name": "Rotor",
+          "description": "Aumenta tu stat de dexteridad por cada rotor equipado. +1 Dexteridad"
+        }
+      }
     },
     {
       "id": 19,
@@ -206,7 +386,17 @@
       "type": "movement",
       "points": 1,
       "movement": 7.5,
-      "category": "core"
+      "category": "core",
+      "languages": {
+        "en": {
+          "name": "Wheels",
+          "description": "Each pair of wheels equipped provides a movement bonus on solid terrain. +15 ft on solid terrain"
+        },
+        "es": {
+          "name": "Ruedas",
+          "description": "Cada par de ruedas equipado proporciona un bonus en tu movimiento, siempre y cuando estés sobre terreno sólido. +15 ft en terreno solido"
+        }
+      }
     },
     {
       "id": 20,
@@ -216,7 +406,17 @@
       "slots": 0,
       "type": "buff",
       "points": 5,
-      "category": "core"
+      "category": "core",
+      "languages": {
+        "en": {
+          "name": "Targeting System",
+          "description": "Increases the effectiveness of your components or weapons against your opponent per system equipped. +2 on effectiveness rolls when outside effective range, -2 on acrobatics rolls for your opponent when within range."
+        },
+        "es": {
+          "name": "Sistema de apunte",
+          "description": "Aumenta la efectividad de tus componentes o armas contra tu oponente por cada sistema equipado. +2 en roles de efectividad de estar fuera del rango efectivo, -2 en roles de acrobacia para tu oponente, de estar dentro de rango"
+        }
+      }
     },
     {
       "id": 21,
@@ -227,7 +427,17 @@
       "type": "buff",
       "points": 1,
       "weight": 4,
-      "category": "core"
+      "category": "core",
+      "languages": {
+        "en": {
+          "name": "Fuel Tank",
+          "description": "Flammable fuel tank capable of feeding flamethrowers for extended periods."
+        },
+        "es": {
+          "name": "Tanque de petróleo",
+          "description": "Tanque de combustible inflamable capaz de alimentar los lanzallamas por periodos prolongados."
+        }
+      }
     },
     {
       "id": 22,
@@ -238,7 +448,17 @@
       "type": "buff",
       "points": 3,
       "weight": 2,
-      "category": "core"
+      "category": "core",
+      "languages": {
+        "en": {
+          "name": "Ursa Liquid Tank",
+          "description": "Any weapon connected to this tank fires damage bullets with disadvantage but with additive effects against the mobility of the attacked opponent. Ursa liquid is capable of extinguishing fire."
+        },
+        "es": {
+          "name": "Tanque de líquido ursa",
+          "description": "Cualquier arma que esté conectada a este tanque lanza balas de daño con desventaja pero con efectos aditivos contra la movilidad del oponente atacado. El líquido ursa es capaz de extinguir fuego."
+        }
+      }
     },
     {
       "id": 23,
@@ -249,7 +469,17 @@
       "type": "buff",
       "points": 3,
       "category": "core",
-      "maxCount": 1
+      "maxCount": 1,
+      "languages": {
+        "en": {
+          "name": "Torso",
+          "description": "Armor capable of protecting the command center, allowing 4 components to be coupled to itself. Only 1 torso can be equipped."
+        },
+        "es": {
+          "name": "Torso",
+          "description": "Armadura capaz de proteger el centro de comando, dando la capacidad de acoplar 4 componentes a sí mismo. Solo se puede tener 1 torso."
+        }
+      }
     },
     {
       "id": 65,
@@ -259,7 +489,17 @@
       "slots": 5,
       "type": "buff",
       "points": 0,
-      "category": "core"
+      "category": "core",
+      "languages": {
+        "en": {
+          "name": "Command Center",
+          "description": "The mech's command center. Must be the root component."
+        },
+        "es": {
+          "name": "Centro de comando",
+          "description": "Centro de comando del mecha. Debe ser el componente raíz."
+        }
+      }
     },
     {
       "id": 28,
@@ -272,7 +512,17 @@
       "actionType": "action",
       "range": "2*mov",
       "energy": 0,
-      "category": "core"
+      "category": "core",
+      "languages": {
+        "en": {
+          "name": "Hook",
+          "description": "As an action, you can use your hook to attach to destructible terrain or a drone/mecha at a distance equal to double your movement amount, which is the maximum effective range. It can be dodged, but blocking it grants automatic success when using it."
+        },
+        "es": {
+          "name": "Gancho",
+          "description": "Como una acción puedes usar tu gancho para acoplarte a una pieza de terreno destruible o un dron/mecha que esté a una distancia igual al doble de tu cantidad de movimiento, siendo esta la distancia máxima en la que es efectivo. Es esquivable, pero bloquearlo le dará un éxito automático al usarlo."
+        }
+      }
     },
     {
       "id": 29,
@@ -286,7 +536,17 @@
       "range": "50 ft",
       "energy": 1,
       "oneTimeUse": true,
-      "category": "core"
+      "category": "core",
+      "languages": {
+        "en": {
+          "name": "Fellini Hook",
+          "description": "Multi-use single-use hook; you can use an action to fire it, reducing the movement of a mecha or drone within its range if effective. It cannot be dodged; the opponent must make a strength or radiofrequency roll equal to or greater than your performance modifier or be held at a range you choose."
+        },
+        "es": {
+          "name": "Gancho Fellini",
+          "description": "Gancho múltiple de un solo uso, puedes usar una acción para dispararlo, reduciendo el movimiento de un mecha o dron dentro de su rango de ser efectivo. Es inesquivable, el oponente deberá hacer un roll de fuerza o radiofrecuencia igual o mayor a tu modificador de rendimiento o será retenido a un rango que tu escojas."
+        }
+      }
     }
   ],
   "utility": [
@@ -302,7 +562,17 @@
       "range": "30 ft",
       "energy": 0,
       "oneTimeUse": true,
-      "category": "utility"
+      "category": "utility",
+      "languages": {
+        "en": {
+          "name": "Fusion Rod",
+          "description": "You can fire a disposable overheated metal rod into the sky using a bonus action. Each time your opponent wants to use heat-seeking missiles, they must make a dexterity or radiofrequency roll with a DC greater than your performance stat or their missiles will be redirected to the fusion rod. One rod per missile attack. You can fire the rod directly at a mecha within range for base damage equal to your performance modifier; this attack is dodgeable but not blockable. Each fusion rod is single-use."
+        },
+        "es": {
+          "name": "Barra de fusión",
+          "description": "Puedes disparar una barra metálica sobrecalentada desechable al cielo usando una acción bonus. Cada vez que tu oponente desee usar misiles de seguimiento por calor deberá hacer un roll de dexteridad o radiofrecuencia con un DC mayor a tu stat de rendimiento o sus misiles serán redirigidos a la barra de fusión. Siendo una barra por ataque de misiles. Puedes disparar la barra directamente a un mecha dentro de rango por un daño base equivalente a tu modificador de rendimiento, este ataque es esquivable pero no bloqueable. Cada barra de fusión es de un solo uso."
+        }
+      }
     },
     {
       "id": 25,
@@ -315,7 +585,17 @@
       "actionType": "action",
       "range": "self",
       "energy": 10,
-      "category": "utility"
+      "category": "utility",
+      "languages": {
+        "en": {
+          "name": "Force Field",
+          "description": "Electric protective component. You can use an action to spend 10 energy to create a magnetic shield with HP equivalent to the component. This shield can absorb any attack on your mech, losing HP in the process. Adding more force fields will additively increase the energy cost to activate them all, but will add half the initial HP of each force field used to the shield's HP. If the attack damage exceeds the force field's HP, it becomes unusable for 2 turns, and the remaining damage is transmitted to the component that created the force field."
+        },
+        "es": {
+          "name": "Campo de fuerza",
+          "description": "Componente protector eléctrico. Puedes usar una acción para gastar 10 de energía con el fin de crear un escudo magnético con una cantidad de vida equivalente al componente. Este escudo puede absorber cualquier ataque hacia tu mecha perdiendo vida en el proceso. Aumentar la cantidad de campos de fuerza gastara aditivamente la cantidad de energía que tomaría activarlos todos, sin embargo añadirá la mitad del hp inicial del campo de fuerza por campo de fuerza utilizado al hp del escudo magnético. Si el daño del ataque es mayor a la vida del campo de fuerza, este quedará inutilizable por 2 turnos, y el daño sobrante se transmitirá al componente que creó el campo de fuerza."
+        }
+      }
     },
     {
       "id": 26,
@@ -329,7 +609,17 @@
       "actionType": "bonus",
       "range": "30 ft",
       "energy": 0,
-      "category": "utility"
+      "category": "utility",
+      "languages": {
+        "en": {
+          "name": "Smoke Bomb Cannon",
+          "description": "As a bonus action, you can use a smoke bomb to cut your opponents' line of sight with you. This allows you to use your performance modifier as a bonus to your stealth rolls while within the smoke. Using multiple smoke bombs extends the range by 5ft per component used. The smoke lasts for 1 turn only."
+        },
+        "es": {
+          "name": "Cañón de bombas de humo",
+          "description": "Como una acción bonus puedes usar una bomba de humo y cortar la línea de visión de tus oponentes contigo. Esto te permitirá usar tu modificador de rendimiento como un adicional a tus roles de sigilo siempre y cuando estés dentro del humo. Utilizar múltiples bombas de humo expandirá el rango por 5ft por cada componente usado. El humo dura por 1 solo turno."
+        }
+      }
     },
     {
       "id": 27,
@@ -342,7 +632,17 @@
       "actionType": "action",
       "range": "15 ft",
       "energy": 40,
-      "category": "utility"
+      "category": "utility",
+      "languages": {
+        "en": {
+          "name": "EMP",
+          "description": "Consumable and throwable electromagnetic mine of single use. You can throw an electromagnetic grenade at a range of 40 ft using an action. When it explodes, any mecha within a 15ft radius of the EMP must make a performance roll against your radiofrequency roll or be disabled for 1 turn."
+        },
+        "es": {
+          "name": "EMP",
+          "description": "Mina electromagnética consumible y arrojable de un solo uso, eres capaz de lanzar una granada electromagnética en un rango de 40 ft utilizando una acción. Al explotar, cualquier mecha que esté dentro de un rango de 15ft alrededor del EMP deberá hacer un roll de rendimiento contra tu roll de radiofrecuencia o será desactivado por 1 turno."
+        }
+      }
     },
     {
       "id": 31,
@@ -356,7 +656,17 @@
       "actionType": "reaction",
       "range": "self",
       "energy": 0,
-      "category": "utility"
+      "category": "utility",
+      "languages": {
+        "en": {
+          "name": "Reflective Coating",
+          "description": "You can use your reaction to activate stealth mode and hide in plain sight. Using this component cuts your opponent's line of sight with you unless they have thermal vision. You also have advantage on effectiveness rolls, but attacking will reveal you again. The coating's effects can be negated by fire heat."
+        },
+        "es": {
+          "name": "Revestimiento reflectivo",
+          "description": "Puedes usar tu reacción para activar tu modo de sigilo y esconderte a plena vista. Al usar este componente cortarás la línea de visión de tu oponente contigo a menos que ellos tengan visión térmica. También tienes ventaja en tus roles de efectividad, sin embargo, al atacar podrás ser visto de nuevo. Los efectos del revestimiento pueden ser eliminados gracias al calor del fuego."
+        }
+      }
     },
     {
       "id": 33,
@@ -370,7 +680,17 @@
       "range": "self",
       "energy": 1,
       "oneTimeUse": true,
-      "category": "utility"
+      "category": "utility",
+      "languages": {
+        "en": {
+          "name": "H.E.L.P System",
+          "description": "Single-use individual recovery package. You can use an action to restore all HP to 1 component."
+        },
+        "es": {
+          "name": "Sistema H.E.L.P",
+          "description": "Paquete de recuperación individual de un solo uso. Puedes usar una acción para recuperar toda la vida de 1 solo componente."
+        }
+      }
     },
     {
       "id": 34,
@@ -384,7 +704,17 @@
       "range": "self",
       "energy": 1,
       "oneTimeUse": true,
-      "category": "utility"
+      "category": "utility",
+      "languages": {
+        "en": {
+          "name": "O.F.T.E.N System",
+          "description": "Allows using a bonus action to cover a hydraulic coupler with a protective layer, consuming the system in the process. If applied to a destroyed coupler, it can survive one additional attack before cutting access to attached components."
+        },
+        "es": {
+          "name": "Sistema O.F.T.E.N",
+          "description": "Permite usar una acción bonus para cubrir un acoplador hidráulico con una capa protectora. Gastando el sistema en el proceso. Si es aplicado en un acoplador destruido, este podrá sobrevivir un ataque extra antes de cortar el acceso a los componentes apegados a él."
+        }
+      }
     },
     {
       "id": 35,
@@ -398,7 +728,17 @@
       "actionType": "bonus",
       "range": "self",
       "energy": 20,
-      "category": "utility"
+      "category": "utility",
+      "languages": {
+        "en": {
+          "name": "Welder",
+          "description": "Allows using a bonus action to repair a destroyed component, granting it 1 HP and making it accessible again. The welder cannot weld armor."
+        },
+        "es": {
+          "name": "Soldador",
+          "description": "Permite usar una acción bonus para reparar un componente destruido otorgándole 1 de hp y haciéndolo accesible de nuevo. El soldador no puede soldar armaduras."
+        }
+      }
     }
   ],
   "weapon": [
@@ -417,7 +757,17 @@
       "ammoCost": 30,
       "weaponType": "medium",
       "weaponSubtype": "null",
-      "category": "weapon"
+      "category": "weapon",
+      "languages": {
+        "en": {
+          "name": "Machine Gun",
+          "description": "Heavy machine gun with high fire capacity. Deals 4d6 + your dexterity modifier damage at an effective range of 70ft; however, if used more than 2 times consecutively, its effective range is reduced by 5ft per subsequent use, with a 1-action cooldown before returning to normal."
+        },
+        "es": {
+          "name": "Ametralladora",
+          "description": "Ametralladora pesada con alta capacidad de disparo. Poseen un 4d6 + tu modificador de destreza de daño en un rango efectivo de 70ft, sin embargo, si se usa más de 2 veces seguidas su rango efectivo es reducido por 5ft por cada uso subsecuente, con un periodo de enfriamiento de 1 acción antes de volver a la normalidad."
+        }
+      }
     },
     {
       "id": 37,
@@ -434,7 +784,17 @@
       "ammoCost": 10,
       "weaponType": "light",
       "weaponSubtype": "null",
-      "category": "weapon"
+      "category": "weapon",
+      "languages": {
+        "en": {
+          "name": "Vulcan Machine Gun",
+          "description": "Small machine guns used against missiles. Deals 1d6 + your dexterity modifier damage in individual bursts or bursts of 4. Instant critical damage to missiles of any type including drones attached to bombs."
+        },
+        "es": {
+          "name": "Ametralladora vulcan",
+          "description": "Ametralladoras pequeñas usadas contra misiles. Poseen un daño de 1d6 + tu modificador de dexteridad en rafagas individuales o rafagas de 4. Daño crítico instantáneo a misiles de cualquier tipo incluyendo drones acoplados a bombas."
+        }
+      }
     },
     {
       "id": 38,
@@ -451,7 +811,17 @@
       "ammoCost": 1,
       "weaponType": "explosive",
       "weaponSubtype": "contact",
-      "category": "weapon"
+      "category": "weapon",
+      "languages": {
+        "en": {
+          "name": "Bazooka",
+          "description": "Contact-exploding single-reload missile, dealing 2d8 + your dexterity modifier damage with an effective range of 80ft."
+        },
+        "es": {
+          "name": "Bazooka",
+          "description": "Misil de explosion por contacto de recarga individual, con un daño de 2d8 + tu modificador de destreza, y un rango efectivo de 80ft."
+        }
+      }
     },
     {
       "id": 39,
@@ -468,7 +838,17 @@
       "ammoCost": 3,
       "weaponType": "melee",
       "weaponSubtype": "null",
-      "category": "weapon"
+      "category": "weapon",
+      "languages": {
+        "en": {
+          "name": "Boomerang",
+          "description": "Laser weapon capable of hitting 2 times on different turns. Deals 3d6 + your strength modifier melee damage with an effective range of 80ft."
+        },
+        "es": {
+          "name": "Boomerang",
+          "description": "Arma láser capaz de pegar 2 veces en turnos diferentes. Posee un daño melee de 3d6 + tu modificador de fuerza, un rango efectivo de 80ft."
+        }
+      }
     },
     {
       "id": 40,
@@ -485,7 +865,17 @@
       "ammoCost": 50,
       "weaponType": "laser",
       "weaponSubtype": "null",
-      "category": "weapon"
+      "category": "weapon",
+      "languages": {
+        "en": {
+          "name": "Cave J Repeater",
+          "description": "Unstable weapon capable of firing with variable performance. Effective range of 60ft."
+        },
+        "es": {
+          "name": "Cave J repeater",
+          "description": "Arma inestable capaz de disparar con rendimiento variado. Posee un rango efectivo de 60ft."
+        }
+      }
     },
     {
       "id": 41,
@@ -502,7 +892,17 @@
       "ammoCost": 10,
       "weaponType": "melee",
       "weaponSubtype": "null",
-      "category": "weapon"
+      "category": "weapon",
+      "languages": {
+        "en": {
+          "name": "KMI Drones",
+          "description": "Drones capable of using energy to attach to your opponent and destroy them. You can use a bonus action and 10 energy to fire a group of drones at your target."
+        },
+        "es": {
+          "name": "Drones KMI",
+          "description": "Drones capaces de usar energía para poder apegarse a tu oponente y destruirlo. Puedes usar una bonus acción y 10 de energía para disparar un grupo de drones contra tu objetivo."
+        }
+      }
     },
     {
       "id": 42,
@@ -519,7 +919,17 @@
       "ammoCost": 30,
       "weaponType": "explosive",
       "weaponSubtype": "null",
-      "category": "weapon"
+      "category": "weapon",
+      "languages": {
+        "en": {
+          "name": "Shotgun",
+          "description": "Flintlock pistol. Deals 4d6 + your dexterity modifier explosive damage with a 30ft effective range. Instant critical damage when shooting within 5ft of the opponent."
+        },
+        "es": {
+          "name": "Escopeta",
+          "description": "Pistola de pedernales. Posee un 4d6 + tu modificador de destreza de daño explosivo y un 30 ft de rango efectivo. Consigues daño crítico instantáneo al disparar a 5ft del oponente."
+        }
+      }
     },
     {
       "id": 43,
@@ -536,7 +946,17 @@
       "ammoCost": 10,
       "weaponType": "explosive",
       "weaponSubtype": "null",
-      "category": "weapon"
+      "category": "weapon",
+      "languages": {
+        "en": {
+          "name": "Electromagnet",
+          "description": "Generates an electromagnetic pulse that pushes or pulls your opponent from or toward the electromagnet. Must be activated using an action, spending 10 energy per action taken after activating it."
+        },
+        "es": {
+          "name": "Electromagneto",
+          "description": "Genera un pulso electromagnético que empuja o atrae a tu oponente desde o hacia el electromagneto. Debe ser activado usando una acción, gastando 10 de energía por cada acción tomada después de activarlo."
+        }
+      }
     },
     {
       "id": 44,
@@ -553,7 +973,17 @@
       "ammoCost": 0,
       "weaponType": "melee",
       "weaponSubtype": "null",
-      "category": "weapon"
+      "category": "weapon",
+      "languages": {
+        "en": {
+          "name": "Dual Swords",
+          "description": "Short weapons capable of cutting steel through brute force. 5ft range and 2d6 + your dexterity damage. With the addition of being able to perform 2 attacks per action, the second giving your opponent disadvantage on acrobatics rolls."
+        },
+        "es": {
+          "name": "Espada duales",
+          "description": "Armas cortas capaces de cortar acero a base de fuerza bruta. Poseen un rango de 5ft y un daño de 2d6 + tu dexteridad. Con el adicional de poder realizar 2 ataques por acción, el segundo dándole desventaja al oponente en roles de acrobacia."
+        }
+      }
     },
     {
       "id": 45,
@@ -570,7 +1000,17 @@
       "ammoCost": 0,
       "weaponType": "melee",
       "weaponSubtype": "null",
-      "category": "weapon"
+      "category": "weapon",
+      "languages": {
+        "en": {
+          "name": "Longsword",
+          "description": "Weapons capable of cutting steel through brute force. Effective/max range of 10ft and 2d8 + your strength modifier damage."
+        },
+        "es": {
+          "name": "Espada larga",
+          "description": "Armas capaces de cortar acero a base de fuerza bruta. Poseen un rango efectivo/máximo de 10ft y un daño de 2d8 + tu modificador de Fuerza."
+        }
+      }
     },
     {
       "id": 46,
@@ -587,7 +1027,17 @@
       "ammoCost": 0,
       "weaponType": "melee",
       "weaponSubtype": "null",
-      "category": "weapon"
+      "category": "weapon",
+      "languages": {
+        "en": {
+          "name": "Iron Claws",
+          "description": "Anti-armor weapons capable of cutting steel through brute force. 2d6 melee damage + your weight and effective/max range of 5ft. Deal critical damage to opponents if they block."
+        },
+        "es": {
+          "name": "Garras de hierro",
+          "description": "Armas anti armadura capaces de cortar acero a base de fuerza bruta. Poseen 2d6 de daño melee + tu peso y un rango efectivo/máximo de 5ft. Poseen daño crítico contra oponentes si estos bloquean."
+        }
+      }
     },
     {
       "id": 47,
@@ -604,7 +1054,17 @@
       "ammoCost": 60,
       "weaponType": "medium",
       "weaponSubtype": "null",
-      "category": "weapon"
+      "category": "weapon",
+      "languages": {
+        "en": {
+          "name": "Gatling",
+          "description": "Machine gun with extremely high fire capacity. Takes a bonus action to activate the gatling and another bonus action to fire. 60ft range and 3d8 + your dexterity modifier damage."
+        },
+        "es": {
+          "name": "Gatling",
+          "description": "Ametralladora con capacidad extremadamente alta de disparo. Toma una acción bonus para activar la gatling y otra acción bonus para poder disparar. Posee un rango de 60 ft y un daño de 3d8 + tu modificador de dexteridad."
+        }
+      }
     },
     {
       "id": 48,
@@ -621,7 +1081,17 @@
       "ammoCost": 0,
       "weaponType": "melee",
       "weaponSubtype": "null",
-      "category": "weapon"
+      "category": "weapon",
+      "languages": {
+        "en": {
+          "name": "Spear",
+          "description": "Piercing weapon capable of precise stabbing. 2d6 melee damage + your dexterity or acrobatics modifier and effective/max range of 10ft."
+        },
+        "es": {
+          "name": "Lanza",
+          "description": "Arma punzante capaz de apuñalar de manera precisa. Posee un 2d6 de daño melee + tu modificador de destreza o acrobacia y un rango efectivo/maximo de 10ft."
+        }
+      }
     },
     {
       "id": 49,
@@ -638,7 +1108,17 @@
       "ammoCost": 4,
       "weaponType": "explosive",
       "weaponSubtype": "guided",
-      "category": "weapon"
+      "category": "weapon",
+      "languages": {
+        "en": {
+          "name": "Rocket Launcher",
+          "description": "Fires multiple heat-seeking missiles with a bonus action, reloads in packs of 4, effective range of 60ft and 1d8 + your dexterity modifier damage per missile."
+        },
+        "es": {
+          "name": "Lanzacohetes",
+          "description": "Lanza múltiples misiles de seguimiento de calor con una acción bonus, se recarga en packs de 4, posee un rango efectivo de 60ft y un daño de 1d8 + tu modificador de destreza por cada misil."
+        }
+      }
     },
     {
       "id": 50,
@@ -655,7 +1135,17 @@
       "ammoCost": 0,
       "weaponType": "explosive",
       "weaponSubtype": "null",
-      "category": "weapon"
+      "category": "weapon",
+      "languages": {
+        "en": {
+          "name": "Flamethrower",
+          "description": "It's a launcher that launches flames. Effective/max range of 30ft, dealing 2d8 + your performance modifier damage. Has 6 uses before running out of fuel."
+        },
+        "es": {
+          "name": "Lanzallamas",
+          "description": "Es un lanzador, que lanza llamas. Posee un rango efectivo/maximo de 30ft, con un daño de 2d8 + tu modificador de rendimiento. Posee una capacidad de 6 usos antes de quedarse sin combustible."
+        }
+      }
     },
     {
       "id": 51,
@@ -672,7 +1162,17 @@
       "ammoCost": 4,
       "weaponType": "explosive",
       "weaponSubtype": "null",
-      "category": "weapon"
+      "category": "weapon",
+      "languages": {
+        "en": {
+          "name": "Mine Launcher",
+          "description": "Preparatory launch rifle: reloads in packs of 4, maximum range of 60ft and 20 + your radiofrequency modifier damage per mine."
+        },
+        "es": {
+          "name": "Lanzaminas",
+          "description": "Rifle de lanzamiento preparativo: Se recarga en packs de 4, posee un rango máximo de 60ft y un daño de 20 + tu modificador de radiofrecuencia por mina."
+        }
+      }
     },
     {
       "id": 52,
@@ -689,7 +1189,17 @@
       "ammoCost": 6,
       "weaponType": "melee",
       "weaponSubtype": "null",
-      "category": "weapon"
+      "category": "weapon",
+      "languages": {
+        "en": {
+          "name": "Mine Whip",
+          "description": "Surprise weapon capable of activating mines. Maximum range of 20 ft, dealing 1d8 + your weight modifier melee damage."
+        },
+        "es": {
+          "name": "Látigo de minas",
+          "description": "Arma sorpresa capaz de activar minas. Posee un rango máximo de 20 ft, y un daño melee de 1d8 + tu modificador de peso."
+        }
+      }
     },
     {
       "id": 53,
@@ -706,7 +1216,17 @@
       "ammoCost": 3,
       "weaponType": "laser",
       "weaponSubtype": "null",
-      "category": "weapon"
+      "category": "weapon",
+      "languages": {
+        "en": {
+          "name": "Laser Pigeon",
+          "description": "Small laser with an effective range of 30 ft and 2d6 + your performance modifier laser damage. Instant critical damage to missiles of any type including drones attached to bombs."
+        },
+        "es": {
+          "name": "Laser pigeon",
+          "description": "Láser pequeño con un rango efectivo de 30 ft y un daño láser de 2d6 + tu modificador de rendimiento. Daño crítico instantáneo a misiles de cualquier tipo incluyendo drones acoplados a bombas."
+        }
+      }
     },
     {
       "id": 54,
@@ -723,7 +1243,17 @@
       "ammoCost": 0,
       "weaponType": "melee",
       "weaponSubtype": "null",
-      "category": "weapon"
+      "category": "weapon",
+      "languages": {
+        "en": {
+          "name": "Hammer",
+          "description": "Weapons capable of crushing steel through brute force with 2d8 melee damage + your weight modifier, effective/max range of 5ft."
+        },
+        "es": {
+          "name": "Martillo",
+          "description": "Armas capaces de aplastar acero a base de fuerza bruta con un 2d8 de daño Melee + tu modificador de peso, poseen un rango efectivo/máximo de 5ft."
+        }
+      }
     },
     {
       "id": 55,
@@ -740,7 +1270,17 @@
       "ammoCost": 3,
       "weaponType": "light",
       "weaponSubtype": "null",
-      "category": "weapon"
+      "category": "weapon",
+      "languages": {
+        "en": {
+          "name": "Microwave Module",
+          "description": "Generates extreme heat in a small range using 3 energy. Deals 1d6 + your performance modifier light projectile damage with effective/max range of 15ft."
+        },
+        "es": {
+          "name": "Módulo de microondas",
+          "description": "Genera calor extremo en un rango pequeño utilizando 3 de energía. Posee un daño proyectil ligero de 1d6 + tu modificador de rendimiento y un rango efectivo/máximo de 15ft."
+        }
+      }
     },
     {
       "id": 56,
@@ -757,7 +1297,17 @@
       "ammoCost": 5,
       "weaponType": "melee",
       "weaponSubtype": "null",
-      "category": "weapon"
+      "category": "weapon",
+      "languages": {
+        "en": {
+          "name": "Marker Pistol",
+          "description": "Fires an explosive marker that alerts the opponent's location via alarm. 50 ft range and 1d8 melee damage + your radiofrequency modifier."
+        },
+        "es": {
+          "name": "Pistola de marcadores",
+          "description": "Dispara un marcador explosivo que alerta mediante una alarma la localización del oponente. Posee un rango de 50 ft y un daño de 1d8 melee + tu modificador de radiofrecuencia."
+        }
+      }
     },
     {
       "id": 57,
@@ -774,7 +1324,17 @@
       "ammoCost": 0,
       "weaponType": "melee",
       "weaponSubtype": "null",
-      "category": "weapon"
+      "category": "weapon",
+      "languages": {
+        "en": {
+          "name": "Life Jaws",
+          "description": "Hydraulic jaws designed to cut and separate metal. You can attack your opponent using a bonus action, dealing 2d6 + your performance modifier damage with an effective range of 5ft."
+        },
+        "es": {
+          "name": "Quijadas de la vida",
+          "description": "Mandíbulas hidráulicas diseñadas para cortar y separar metal. Puedes atacar a tu oponente mediante una acción bonus, un daño de 2d6 + tu modificador de rendimiento, y un rango efectivo de 5ft."
+        }
+      }
     },
     {
       "id": 58,
@@ -791,7 +1351,17 @@
       "ammoCost": 20,
       "weaponType": "medium",
       "weaponSubtype": "null",
-      "category": "weapon"
+      "category": "weapon",
+      "languages": {
+        "en": {
+          "name": "Irrevocable Taser Mag",
+          "description": "Railgun without projectiles capable of firing electric charges. Deals 6d6 + your performance modifier projectile damage with an effective range of 40 ft."
+        },
+        "es": {
+          "name": "Taser Mag Irrevocable",
+          "description": "Cañón de riel sin proyectiles capaz de disparar descargas eléctricas. Posee un daño proyectil de 6d6 + tu modificador de rendimiento y un rango efectivo de 40 ft."
+        }
+      }
     },
     {
       "id": 59,
@@ -808,7 +1378,17 @@
       "ammoCost": 10,
       "weaponType": "explosive",
       "weaponSubtype": "null",
-      "category": "weapon"
+      "category": "weapon",
+      "languages": {
+        "en": {
+          "name": "Magnum Revolver",
+          "description": "Weapons designed to penetrate armor. Deals 10 + your performance modifier explosive damage with an effective range of 5ft. They are unblockable."
+        },
+        "es": {
+          "name": "Revolver Magnum",
+          "description": "Armas diseñadas para penetrar armadura. Con un 10 + tu modificador de rendimiento de daño explosivo, poseen un rango efectivo de 5ft. Son imbloqueables."
+        }
+      }
     },
     {
       "id": 60,
@@ -825,7 +1405,17 @@
       "ammoCost": 15,
       "weaponType": "light",
       "weaponSubtype": "null",
-      "category": "weapon"
+      "category": "weapon",
+      "languages": {
+        "en": {
+          "name": "Rifle",
+          "description": "Mass-produced small machine guns. Deals 1d6 + your dexterity modifier damage with an effective range of 70ft. Must be reloaded manually."
+        },
+        "es": {
+          "name": "Rifle",
+          "description": "Ametralladoras pequeñas producidas en masa. Poseen un daño de 1d6 + tu modificador de dexteridad y un rango efectivo de 70ft. Deben recargarse manualmente."
+        }
+      }
     },
     {
       "id": 61,
@@ -842,7 +1432,17 @@
       "ammoCost": 30,
       "weaponType": "medium",
       "weaponSubtype": "null",
-      "category": "weapon"
+      "category": "weapon",
+      "languages": {
+        "en": {
+          "name": "Sniper Rifle",
+          "description": "A heavy slow-reload rifle. Deals 3d8 + your dexterity modifier damage with an effective range of 160 ft."
+        },
+        "es": {
+          "name": "Rifle Francotirador",
+          "description": "Un rifle pesado de recarga lenta. Posee un daño de 3d8 + tu modificador de destreza y un rango efectivo de 160 ft."
+        }
+      }
     },
     {
       "id": 62,
@@ -859,7 +1459,17 @@
       "ammoCost": 3,
       "weaponType": "laser",
       "weaponSubtype": "null",
-      "category": "weapon"
+      "category": "weapon",
+      "languages": {
+        "en": {
+          "name": "Laser Rifle",
+          "description": "Mass-produced laser machine guns. Deals 2d6 + your performance modifier damage with an effective range of 70ft."
+        },
+        "es": {
+          "name": "Rifle láser",
+          "description": "Ametralladoras láser producidas en masa. Poseen un daño de 2d6 + tu modificador de rendimiento y un rango efectivo de 70ft."
+        }
+      }
     },
     {
       "id": 63,
@@ -876,7 +1486,17 @@
       "ammoCost": 10,
       "weaponType": "laser",
       "weaponSubtype": "null",
-      "category": "weapon"
+      "category": "weapon",
+      "languages": {
+        "en": {
+          "name": "Magnum Rifle",
+          "description": "A single-shot-per-reload rifle dealing 4d8 + your performance modifier damage with an effective range of 160ft. Spends 10 energy per shot."
+        },
+        "es": {
+          "name": "Rifle Magnum",
+          "description": "Un rifle de un solo disparo por recarga con un daño de 4d8 + tu modificador de rendimiento y un rango efectivo de 160ft. Gasta 10 de energía por cada disparo."
+        }
+      }
     },
     {
       "id": 64,
@@ -893,34 +1513,92 @@
       "ammoCost": 10,
       "weaponType": "melee",
       "weaponSubtype": "null",
-      "category": "weapon"
+      "category": "weapon",
+      "languages": {
+        "en": {
+          "name": "Drill",
+          "description": "Advanced piercing weapon used in mining to disintegrate mother rock. Maximum range of 5 ft."
+        },
+        "es": {
+          "name": "Taladro",
+          "description": "Arma punzante avanzada usada en minería para desintegrar piedra madre. Posee un rango máximo de 5 ft."
+        }
+      }
     }
   ],
   "customComponents": [],
   "archetypes": [
     {
       "label": "Striker",
-      "cost": 3
+      "cost": 3,
+      "languages": {
+        "en": {
+          "label": "Striker"
+        },
+        "es": {
+          "label": "Atacante"
+        }
+      }
     },
     {
       "label": "Tank",
-      "cost": 4
+      "cost": 4,
+      "languages": {
+        "en": {
+          "label": "Tank"
+        },
+        "es": {
+          "label": "Tanque"
+        }
+      }
     },
     {
       "label": "Support",
-      "cost": 2
+      "cost": 2,
+      "languages": {
+        "en": {
+          "label": "Support"
+        },
+        "es": {
+          "label": "Soporte"
+        }
+      }
     },
     {
       "label": "Scout",
-      "cost": 2
+      "cost": 2,
+      "languages": {
+        "en": {
+          "label": "Scout"
+        },
+        "es": {
+          "label": "Explorador"
+        }
+      }
     },
     {
       "label": "Artillery",
-      "cost": 5
+      "cost": 5,
+      "languages": {
+        "en": {
+          "label": "Artillery"
+        },
+        "es": {
+          "label": "Artillería"
+        }
+      }
     },
     {
       "label": "Stealth",
-      "cost": 4
+      "cost": 4,
+      "languages": {
+        "en": {
+          "label": "Stealth"
+        },
+        "es": {
+          "label": "Sigilo"
+        }
+      }
     }
   ],
   "models": [

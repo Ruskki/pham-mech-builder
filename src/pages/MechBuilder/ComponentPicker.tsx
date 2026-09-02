@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import type { ComponentCategory, MechComponent, PremadeData } from '../../types';
-import { premadeToComponent, normalizeStr } from '../../types';
+import { premadeToComponent, normalizeStr, localizedName } from '../../types';
+import { useLang } from '../../i18n';
 import './ComponentPicker.css';
 
 interface ComponentPickerProps {
@@ -20,6 +21,7 @@ const CAT_COLORS: Record<string, string> = {
 export function ComponentPicker({ onPick, onClose, customComponents = [], premadeData = {} }: ComponentPickerProps) {
   const [search, setSearch] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+  const { lang } = useLang();
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -33,7 +35,7 @@ export function ComponentPicker({ onPick, onClose, customComponents = [], premad
   ];
 
   const filtered = search
-    ? allItems.filter(c => normalizeStr(c.data.name).includes(normalizeStr(search)))
+    ? allItems.filter(c => normalizeStr(localizedName(c.data, lang)).includes(normalizeStr(search)))
     : allItems;
 
   const grouped = CATEGORIES.map(cat => ({
@@ -71,7 +73,7 @@ export function ComponentPicker({ onPick, onClose, customComponents = [], premad
                   className="picker-item"
                   onClick={() => onPick(premadeToComponent(item.data))}
                 >
-                  <span className="picker-item-name">{item.data.name}</span>
+                  <span className="picker-item-name">{localizedName(item.data, lang)}</span>
                   {item.isCustom && <span className="picker-item-badge">custom</span>}
                   <span className="picker-item-stats">
                     {item.data.points}p · {item.data.slots} slot{item.data.slots !== 1 ? 's' : ''}

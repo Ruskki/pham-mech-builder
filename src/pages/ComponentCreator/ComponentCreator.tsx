@@ -1,7 +1,8 @@
-import { useState, useRef, useEffect, useMemo, ChangeEvent } from 'react';
+import { useState, useRef, useEffect, useMemo, type ChangeEvent } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
-import type { PremadeData, ComponentCategory, ScaleModifiers, ArchetypeOption, ModelOption } from '../../types';
-import { defaultPremade, normalizeStr } from '../../types';
+import type { PremadeData, ComponentCategory, ScaleModifiers, ArchetypeOption, ModelOption, LocalizedEntry, LocalizedArchetype } from '../../types';
+import { defaultPremade, normalizeStr, localizedName, localizedArchetypeLabel } from '../../types';
+import { useLang, LANGUAGES } from '../../i18n';
 import { SCALES, MOD_KEYS, MOD_LABELS, DEFAULT_ARCHETYPES, DEFAULT_MODELS, DEFAULT_SCALE_MODIFIERS } from '../../data/defaults';
 import './ComponentCreator.css';
 
@@ -89,6 +90,7 @@ export function ComponentCreator({
 
   const importRef = useRef<HTMLInputElement>(null);
   const massImportRef = useRef<HTMLInputElement>(null);
+  const { lang } = useLang();
 
   useEffect(() => {
     if (tab !== 'components') {
@@ -141,7 +143,7 @@ export function ComponentCreator({
   ];
 
   const filtered = search
-    ? allEntries.filter(e => normalizeStr(e.data.name).includes(normalizeStr(search)))
+    ? allEntries.filter(e => normalizeStr(localizedName(e.data, lang)).includes(normalizeStr(search)))
     : allEntries;
 
   const grouped = CATEGORIES.map(cat => ({
@@ -484,7 +486,7 @@ export function ComponentCreator({
                           className={`creator-lib-item ${sel ? 'sel' : ''}`}
                           onClick={() => select(entry)}
                         >
-                          <span className="creator-lib-name">{entry.data.name}</span>
+                          <span className="creator-lib-name">{localizedName(entry.data, lang)}</span>
                           <span className={`creator-lib-pts ${entry.data.points > 0 ? '' : 'zero'}`}>{entry.data.points}p</span>
                           {entry.kind === 'custom' && <span className="creator-lib-badge">custom</span>}
                           {entry.kind === 'premade' && (entry.data.id in premadeEdits) && (
@@ -503,14 +505,14 @@ export function ComponentCreator({
             {tab === 'archetypes' && (
               <>
                 {archetypes
-                  .filter(a => !search || normalizeStr(a.label).includes(normalizeStr(search)))
+                  .filter(a => !search || normalizeStr(localizedArchetypeLabel(a, lang)).includes(normalizeStr(search)))
                   .map((a, i) => (
                     <button
                       key={a.label}
                       className={`creator-lib-item ${editingArchetypeIdx === i ? 'sel' : ''}`}
                       onClick={() => selectArchetype(i)}
                     >
-                      <span className="creator-lib-name">{a.label}</span>
+                      <span className="creator-lib-name">{localizedArchetypeLabel(a, lang)}</span>
                       <span className="creator-lib-badge">{a.cost}p</span>
                     </button>
                   ))}
@@ -710,6 +712,45 @@ export function ComponentCreator({
               </label>
 
               <fieldset className="attr-mod-fieldset">
+                <legend>Translations</legend>
+                {LANGUAGES.map(lc => (
+                  <div key={lc.code} className="form-row">
+                    <label style={{ flex: 1 }}>
+                      {lc.label} Name
+                      <input
+                        value={form.languages?.[lc.code]?.name ?? ''}
+                        onChange={e => {
+                          const prev = { ...form.languages } as LocalizedEntry | undefined;
+                          const entry = prev?.[lc.code] ?? { name: '', description: '' };
+                          const updated = { ...entry, name: e.target.value };
+                          const next = { ...(prev ?? {}), [lc.code]: updated };
+                          setField('languages', next);
+                        }}
+                      />
+                    </label>
+                  </div>
+                ))}
+                {LANGUAGES.map(lc => (
+                  <div key={lc.code + '-desc'}>
+                    <label>
+                      {lc.label} Description
+                      <textarea
+                        rows={2}
+                        value={form.languages?.[lc.code]?.description ?? ''}
+                        onChange={e => {
+                          const prev = { ...form.languages } as LocalizedEntry | undefined;
+                          const entry = prev?.[lc.code] ?? { name: '', description: '' };
+                          const updated = { ...entry, description: e.target.value };
+                          const next = { ...(prev ?? {}), [lc.code]: updated };
+                          setField('languages', next);
+                        }}
+                      />
+                    </label>
+                  </div>
+                ))}
+              </fieldset>
+
+              <fieldset className="attr-mod-fieldset">
                 <legend>Stat Modifiers</legend>
                 <div className="form-row">
                   <label>
@@ -868,7 +909,7 @@ export function ComponentCreator({
             <div className="creator-form">
               {editingArchetypeIdx !== null && (
                 <div className="panel-stat-row" style={{ fontSize: '0.75rem', color: '#667788' }}>
-                  Editing: {archetypes[editingArchetypeIdx]?.label || ''}
+                  Editing: {localizedArchetypeLabel(archetypes[editingArchetypeIdx] ?? { label: '' }, lang)}
                 </div>
               )}
               <div className="form-row">
@@ -889,6 +930,25 @@ export function ComponentCreator({
                   />
                 </label>
               </div>
+              <fieldset className="attr-mod-fieldset">
+                <legend>Translations</legend>
+                {LANGUAGES.map(lc => (
+                  <div key={lc.code} className="form-row">
+                    <label style={{ flex: 1 }}>
+                      {lc.label} Label
+                      <input
+                        value={archetypeForm.languages?.[lc.code]?.label ?? ''}
+                        onChange={e => {
+                          const prev = { ...archetypeForm.languages } as LocalizedArchetype | undefined;
+                          const updated = { label: e.target.value };
+                          const next = { ...(prev ?? {}), [lc.code]: updated };
+                          setArchetypeForm(prev => ({ ...prev, languages: next }));
+                        }}
+                      />
+                    </label>
+                  </div>
+                ))}
+              </fieldset>
               <div className="creator-form-actions">
                 <button className="creator-btn creator-btn-save" onClick={handleArchetypeSave}>
                   {editingArchetypeIdx !== null ? 'Update' : 'Add Archetype'}

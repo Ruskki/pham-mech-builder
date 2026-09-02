@@ -10,12 +10,12 @@ export const DEFAULT_SCALE_MODIFIERS: Record<string, ScaleModifiers> = {
 };
 
 export const DEFAULT_ARCHETYPES: ArchetypeOption[] = [
-  { label: 'Striker', cost: 3 },
-  { label: 'Tank', cost: 4 },
-  { label: 'Support', cost: 2 },
-  { label: 'Scout', cost: 2 },
-  { label: 'Artillery', cost: 5 },
-  { label: 'Stealth', cost: 4 },
+  { label: 'Striker', cost: 3, languages: { en: { label: 'Striker' }, es: { label: 'Atacante' } } },
+  { label: 'Tank', cost: 4, languages: { en: { label: 'Tank' }, es: { label: 'Tanque' } } },
+  { label: 'Support', cost: 2, languages: { en: { label: 'Support' }, es: { label: 'Soporte' } } },
+  { label: 'Scout', cost: 2, languages: { en: { label: 'Scout' }, es: { label: 'Explorador' } } },
+  { label: 'Artillery', cost: 5, languages: { en: { label: 'Artillery' }, es: { label: 'Artillería' } } },
+  { label: 'Stealth', cost: 4, languages: { en: { label: 'Stealth' }, es: { label: 'Sigilo' } } },
 ];
 
 const SD_MODELS = ['Beacon', 'Kilo-ton', 'Black Flash', 'Ex-calibur'];

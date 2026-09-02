@@ -6,6 +6,7 @@ import { ComponentCreator } from './pages/ComponentCreator/ComponentCreator';
 import { CharacterSheet } from './pages/CharacterSheet/CharacterSheet';
 import { Settings } from './pages/Settings/Settings';
 import { DEFAULT_SCALE_MODIFIERS, DEFAULT_ARCHETYPES, DEFAULT_MODELS } from './data/defaults';
+import { LanguageProvider, useLang, LANGUAGES } from './i18n';
 import './index.css';
 import './App.css';
 
@@ -302,41 +303,45 @@ export function App() {
 
   if (!loaded) {
     return (
-      <div className="app-root">
-        <div className="app-page" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ color: '#667788' }}>Loading…</span>
+      <LanguageProvider>
+        <div className="app-root">
+          <div className="app-page" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ color: '#667788' }}>Loading…</span>
+          </div>
         </div>
-      </div>
+      </LanguageProvider>
     );
   }
 
   return (
-    <div className="app-root">
-      <nav className="app-nav">
-        <span className="app-logo">PHAM Mech Builder</span>
-        <div className="app-tabs">
-          {PAGES.map(p => (
-            <button
-              key={p.key}
-              className={`app-tab ${page === p.key ? 'active' : ''}`}
-              onClick={() => setPage(p.key)}
-            >
-              {p.label}
-            </button>
-          ))}
-        </div>
-        <button
-          className="app-shutdown"
-          title="Stop the server"
-          onClick={() => {
-            fetch('/api/shutdown', { method: 'POST' }).then(() => {
-              setTimeout(() => window.location.reload(), 500);
-            });
-          }}
-        >
-          Shutdown
-        </button>
-      </nav>
+    <LanguageProvider>
+      <div className="app-root">
+        <nav className="app-nav">
+          <span className="app-logo">PHAM Mech Builder</span>
+          <div className="app-tabs">
+            {PAGES.map(p => (
+              <button
+                key={p.key}
+                className={`app-tab ${page === p.key ? 'active' : ''}`}
+                onClick={() => setPage(p.key)}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+          <LangToggle />
+          <button
+            className="app-shutdown"
+            title="Stop the server"
+            onClick={() => {
+              fetch('/api/shutdown', { method: 'POST' }).then(() => {
+                setTimeout(() => window.location.reload(), 500);
+              });
+            }}
+          >
+            Shutdown
+          </button>
+        </nav>
       <div className="app-page">
         {page === 'creator' && (
           <ComponentCreator
@@ -391,7 +396,25 @@ export function App() {
           />
         )}
       </div>
-    </div>
+      </div>
+    </LanguageProvider>
+  );
+}
+
+function LangToggle() {
+  const { lang, setLang } = useLang();
+  const currentIdx = LANGUAGES.findIndex(l => l.code === lang);
+  const nextIdx = (currentIdx + 1) % LANGUAGES.length;
+  const nextLang = LANGUAGES[nextIdx];
+
+  return (
+    <button
+      className="lang-toggle"
+      title={nextLang ? `Switch to ${nextLang.label}` : undefined}
+      onClick={() => { if (nextLang) setLang(nextLang.code); }}
+    >
+      {lang.toUpperCase()}
+    </button>
   );
 }
 

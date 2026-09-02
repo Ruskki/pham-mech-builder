@@ -2,9 +2,53 @@ export type ComponentCategory = 'core' | 'utility' | 'weapon';
 
 export type ScaleType = string;
 
+export type Language = string;
+
+export interface LocalizedEntry {
+  [langCode: string]: { name: string; description: string };
+}
+
+export interface LocalizedArchetype {
+  [langCode: string]: { label: string };
+}
+
+export function localizedName(
+  comp: { name: string; languages?: LocalizedEntry },
+  lang: string,
+): string {
+  const entry = comp.languages?.[lang];
+  if (entry?.name) return entry.name;
+  const fallback = comp.languages?.['en'];
+  if (fallback?.name) return fallback.name;
+  return comp.name;
+}
+
+export function localizedDesc(
+  comp: { description: string; languages?: LocalizedEntry },
+  lang: string,
+): string {
+  const entry = comp.languages?.[lang];
+  if (entry?.description) return entry.description;
+  const fallback = comp.languages?.['en'];
+  if (fallback?.description) return fallback.description;
+  return comp.description;
+}
+
+export function localizedArchetypeLabel(
+  arch: { label: string; languages?: LocalizedArchetype },
+  lang: string,
+): string {
+  const entry = arch.languages?.[lang];
+  if (entry?.label) return entry.label;
+  const fallback = arch.languages?.['en'];
+  if (fallback?.label) return fallback.label;
+  return arch.label;
+}
+
 export interface ArchetypeOption {
   label: string;
   cost: number;
+  languages?: LocalizedArchetype;
 }
 
 export interface ModelOption {
@@ -50,6 +94,7 @@ export interface BaseComponentFields {
   rendMod?: number;
   movement?: number;
   maxCount?: number;
+  languages?: LocalizedEntry;
 }
 
 export interface CoreComponent extends BaseComponentFields {
@@ -180,6 +225,7 @@ export interface PremadeData {
   weaponType?: string;
   weaponSubtype?: string;
   maxCount?: number;
+  languages?: LocalizedEntry;
 }
 
 export function defaultPremade(category: ComponentCategory, id = 0): PremadeData {
@@ -210,6 +256,7 @@ export function premadeToComponent(data: PremadeData): MechComponent {
     rendMod: data.rendMod,
     movement: data.movement,
     maxCount: data.maxCount,
+    languages: data.languages,
   };
   switch (data.category) {
     case 'core':
