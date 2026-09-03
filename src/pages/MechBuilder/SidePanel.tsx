@@ -25,6 +25,9 @@ const EQUIP_STATS = [
 ];
 
 const STATS_STORAGE_KEY = 'pham-mech-builder-stats';
+const ARCHETYPES_STORAGE_KEY = 'pham-mech-builder-archetypes';
+const SPEC_STORAGE_KEY = 'pham-mech-builder-spec';
+const MODEL_STORAGE_KEY = 'pham-mech-builder-model';
 
 type StatBases = Record<string, number>;
 
@@ -41,6 +44,29 @@ function loadBases(): StatBases {
   } catch {
     return defaultBases();
   }
+}
+
+function loadArchetypes(defaults: ArchetypeOption[]): Set<string> {
+  try {
+    const raw = localStorage.getItem(ARCHETYPES_STORAGE_KEY);
+    if (raw) {
+      const arr: string[] = JSON.parse(raw);
+      return new Set(arr.filter(a => defaults.some(d => d.label === a)));
+    }
+  } catch {}
+  return new Set([defaults[0]?.label ?? 'Striker']);
+}
+
+function loadSpec(defaults: ArchetypeOption[]): string | null {
+  try {
+    const stored = localStorage.getItem(SPEC_STORAGE_KEY);
+    if (stored && defaults.some(d => d.label === stored)) return stored;
+  } catch {}
+  return defaults[0]?.label ?? 'Striker';
+}
+
+function loadModel(): string {
+  try { return localStorage.getItem(MODEL_STORAGE_KEY) || 'Prototype'; } catch { return 'Prototype'; }
 }
 
 function sumMods(node: ComponentNode | null, modKey: string): number {
@@ -76,14 +102,27 @@ interface SidePanelProps {
 
 export function SidePanel({ componentPoints = 0, mechRoot = null, scale, setScale, scaleMods, setScaleMods, archetypes, models = [], onTotalChange, statMin = 5, maxStatPoints = 27, onStatPointsChange, onStatBelowMinChange }: SidePanelProps) {
   const [bases, setBases] = useState<StatBases>(loadBases);
-  const [selected, setSelected] = useState<Set<string>>(new Set([archetypes[0]?.label ?? 'Striker']));
-  const [spec, setSpec] = useState<string | null>(archetypes[0]?.label ?? 'Striker');
-  const [model, setModel] = useState('Prototype');
+  const [selected, setSelected] = useState<Set<string>>(() => loadArchetypes(archetypes));
+  const [spec, setSpec] = useState<string | null>(() => loadSpec(archetypes));
+  const [model, setModel] = useState(() => loadModel());
   const { lang } = useLang();
 
   useEffect(() => {
     localStorage.setItem(STATS_STORAGE_KEY, JSON.stringify(bases));
   }, [bases]);
+
+  useEffect(() => {
+    localStorage.setItem(ARCHETYPES_STORAGE_KEY, JSON.stringify([...selected]));
+  }, [selected]);
+
+  useEffect(() => {
+    if (spec) localStorage.setItem(SPEC_STORAGE_KEY, spec);
+    else localStorage.removeItem(SPEC_STORAGE_KEY);
+  }, [spec]);
+
+  useEffect(() => {
+    localStorage.setItem(MODEL_STORAGE_KEY, model);
+  }, [model]);
 
   const currentScaleMods = scaleMods[scale] ?? {};
 

@@ -7,8 +7,11 @@ import { CharacterSheet } from './pages/CharacterSheet/CharacterSheet';
 import { Settings } from './pages/Settings/Settings';
 import { DEFAULT_SCALE_MODIFIERS, DEFAULT_ARCHETYPES, DEFAULT_MODELS } from './data/defaults';
 import { LanguageProvider, useLang, LANGUAGES } from './i18n';
+import defaultComponentsData from './data/components.json';
 import './index.css';
 import './App.css';
+
+const IS_SERVER = typeof process !== 'undefined' && process.env?.BUILD_TARGET === 'server';
 
 type Page = 'creator' | 'builder' | 'sheet' | 'settings';
 
@@ -39,23 +42,38 @@ const EMPTY_DATA: UserData = {
 
 let saveTimer: ReturnType<typeof setTimeout> | null = null;
 
-function saveToAPI(data: UserData) {
-  if (saveTimer) clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => {
-    const payload: Record<string, unknown> = {
-      ...data.premades,
-      customComponents: data.customComponents,
-      archetypes: data.archetypes,
-      models: data.models,
-      scales: data.scales,
-      premadeEdits: data.premadeEdits,
-    };
-    fetch('/api/data', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    }).catch(console.error);
-  }, 300);
+const STORAGE_KEY = 'pham-mech-builder-data';
+
+function saveData(data: UserData) {
+  if (IS_SERVER) {
+    if (saveTimer) clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      const payload: Record<string, unknown> = {
+        ...data.premades,
+        customComponents: data.customComponents,
+        archetypes: data.archetypes,
+        models: data.models,
+        scales: data.scales,
+        premadeEdits: data.premadeEdits,
+      };
+      fetch('/api/data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      }).catch(console.error);
+    }, 300);
+  } else {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        premades: data.premades,
+        customComponents: data.customComponents,
+        archetypes: data.archetypes,
+        models: data.models,
+        scales: data.scales,
+        premadeEdits: data.premadeEdits,
+      }));
+    } catch {}
+  }
 }
 
 function parseData(raw: Record<string, unknown>): UserData {
@@ -127,7 +145,9 @@ export function App() {
   const [premades, setPremades] = useState<Record<string, PremadeData[]>>({ core: [], utility: [], weapon: [] });
   const [customComponents, setCustomComponents] = useState<PremadeData[]>([]);
   const [mechRoot, setMechRoot] = useState<ComponentNode | null>(null);
-  const [scale, setScale] = useState<ScaleType>('HG');
+  const [scale, setScaleState] = useState<ScaleType>(() => {
+    try { return (localStorage.getItem('pham-mech-builder-scale') as ScaleType) || 'HG'; } catch { return 'HG'; }
+  });
   const [scaleMods, setScaleMods] = useState<Record<ScaleType, ScaleModifiers>>({ ...DEFAULT_SCALE_MODIFIERS });
   const [archetypes, setArchetypes] = useState<ArchetypeOption[]>(DEFAULT_ARCHETYPES);
   const [models, setModels] = useState<ModelOption[]>(DEFAULT_MODELS);
@@ -145,22 +165,38 @@ export function App() {
   const dataRef = useRef<UserData>(EMPTY_DATA);
 
   useEffect(() => {
-    fetch('/api/data')
-      .then(r => r.json())
-      .then((raw: Record<string, unknown>) => {
-        const data = parseData(raw);
-        dataRef.current = data;
-        setPremades(data.premades);
-        setCustomComponents(data.customComponents);
-        setScaleMods(data.scales);
-        setArchetypes(data.archetypes);
-        setModels(data.models);
-        setPremadeEdits(data.premadeEdits);
-        const merged = mergePremades(data.premades, data.premadeEdits);
-        setMechRoot(loadMech(merged, data.customComponents));
-        setLoaded(true);
-      })
-      .catch(() => setLoaded(true));
+    if (IS_SERVER) {
+      fetch('/api/data')
+        .then(r => r.json())
+        .then((raw: Record<string, unknown>) => {
+          const data = parseData(raw);
+          dataRef.current = data;
+          setPremades(data.premades);
+          setCustomComponents(data.customComponents);
+          setScaleMods(data.scales);
+          setArchetypes(data.archetypes);
+          setModels(data.models);
+          setPremadeEdits(data.premadeEdits);
+          const merged = mergePremades(data.premades, data.premadeEdits);
+          setMechRoot(loadMech(merged, data.customComponents));
+          setLoaded(true);
+        })
+        .catch(() => setLoaded(true));
+    } else {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      const raw = saved ? { ...defaultComponentsData, ...JSON.parse(saved) } : defaultComponentsData as Record<string, unknown>;
+      const data = parseData(raw);
+      dataRef.current = data;
+      setPremades(data.premades);
+      setCustomComponents(data.customComponents);
+      setScaleMods(data.scales);
+      setArchetypes(data.archetypes);
+      setModels(data.models);
+      setPremadeEdits(data.premadeEdits);
+      const merged = mergePremades(data.premades, data.premadeEdits);
+      setMechRoot(loadMech(merged, data.customComponents));
+      setLoaded(true);
+    }
   }, []);
 
   useEffect(() => {
@@ -173,7 +209,7 @@ export function App() {
       scales: scaleMods,
       premadeEdits,
     };
-    saveToAPI(dataRef.current);
+    saveData(dataRef.current);
   }, [premades, customComponents, archetypes, models, scaleMods, premadeEdits, loaded]);
 
   useEffect(() => {
@@ -182,8 +218,16 @@ export function App() {
   }, [mechRoot, customComponents, loaded]);
 
   useEffect(() => {
+    try { localStorage.setItem('pham-mech-builder-scale', scale); } catch {}
+  }, [scale]);
+
+  const setScale = useCallback((s: ScaleType) => {
+    setScaleState(s);
+  }, []);
+
+  useEffect(() => {
     if (scaleMods[scale] === undefined) {
-      setScale(Object.keys(scaleMods)[0] ?? 'HG');
+      setScaleState(Object.keys(scaleMods)[0] as ScaleType ?? 'HG');
     }
   }, [scaleMods, scale]);
 
@@ -255,16 +299,20 @@ export function App() {
     };
     dataRef.current = blank;
     localStorage.removeItem('pham-mech-builder-mech');
-    fetch('/api/data', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        core: [], utility: [], weapon: [],
-        customComponents: [], archetypes: [],
-        models: [], scales: {},
-        premadeEdits: {},
-      }),
-    }).catch(console.error);
+    if (IS_SERVER) {
+      fetch('/api/data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          core: [], utility: [], weapon: [],
+          customComponents: [], archetypes: [],
+          models: [], scales: {},
+          premadeEdits: {},
+        }),
+      }).catch(console.error);
+    } else {
+      localStorage.removeItem(STORAGE_KEY);
+    }
     setPremades({ core: [], utility: [], weapon: [] });
     setCustomComponents([]);
     setPremadeEdits({});
@@ -277,20 +325,21 @@ export function App() {
   const handleMassImport = useCallback((data: Record<string, unknown>) => {
     const parsed = parseData(data);
     dataRef.current = parsed;
-    const payload: Record<string, unknown> = {
-      ...parsed.premades,
-      customComponents: parsed.customComponents,
-      archetypes: parsed.archetypes,
-      models: parsed.models,
-      scales: parsed.scales,
-      premadeEdits: parsed.premadeEdits,
-    };
-    console.log('Mass import payload:', Object.keys(payload), 'core:', (payload.core as unknown[])?.length, 'weapon:', (payload.weapon as unknown[])?.length);
-    fetch('/api/data', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    }).then(r => r.json()).then(d => console.log('Import saved:', d)).catch(err => console.error('Import save failed:', err));
+    if (IS_SERVER) {
+      const payload: Record<string, unknown> = {
+        ...parsed.premades,
+        customComponents: parsed.customComponents,
+        archetypes: parsed.archetypes,
+        models: parsed.models,
+        scales: parsed.scales,
+        premadeEdits: parsed.premadeEdits,
+      };
+      fetch('/api/data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      }).then(r => r.json()).then(d => console.log('Import saved:', d)).catch(err => console.error('Import save failed:', err));
+    }
     setPremades(parsed.premades);
     setCustomComponents(parsed.customComponents);
     setPremadeEdits(parsed.premadeEdits);
@@ -330,17 +379,19 @@ export function App() {
             ))}
           </div>
           <LangToggle />
-          <button
-            className="app-shutdown"
-            title="Stop the server"
-            onClick={() => {
-              fetch('/api/shutdown', { method: 'POST' }).then(() => {
-                setTimeout(() => window.location.reload(), 500);
-              });
-            }}
-          >
-            Shutdown
-          </button>
+          {IS_SERVER && (
+            <button
+              className="app-shutdown"
+              title="Stop the server"
+              onClick={() => {
+                fetch('/api/shutdown', { method: 'POST' }).then(() => {
+                  setTimeout(() => window.location.reload(), 500);
+                });
+              }}
+            >
+              Shutdown
+            </button>
+          )}
         </nav>
       <div className="app-page">
         {page === 'creator' && (
