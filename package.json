@@ -5,7 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "bun --hot src/index.ts",
-    "build": "bun build ./src/index.html --outdir=dist --sourcemap --target=browser --minify --define:process.env.NODE_ENV='\"production\"' --env='BUN_PUBLIC_*'",
+    "build": "bun build ./src/index.html --outdir=dist --sourcemap --target=browser --minify --define:process.env.BUILD_TARGET='\"static\"'",
+    "build:exe": "bun build --compile src/index.ts --define:process.env.BUILD_TARGET='\"server\"'",
+    "build:exe:linux": "bun build --compile --target=bun-linux-x64 src/index.ts --define:process.env.BUILD_TARGET='\"server\"'",
+    "build:exe:win": "bun build --compile --target=bun-windows-x64 src/index.ts --define:process.env.BUILD_TARGET='\"server\"'",
     "start": "NODE_ENV=production bun src/index.ts"
   },
   "dependencies": {

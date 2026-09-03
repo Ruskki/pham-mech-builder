@@ -1679,5 +1679,27 @@
       "healthMod": 100
     }
   },
-  "premadeEdits": {}
+  "premadeEdits": {
+    "4": {
+      "id": 4,
+      "name": "pupu",
+      "description": "Aumenta la cantidad de misiles/granadas/bombas/minas etc por cada almacén, necesitas una acción bonus para recargar las bombas usadas en tu arma. +4 en el peso de tu mecha a menos que sea destruido o usado completamente. +12 en misiles/granadas/bombas/minas etc que puedan usar tus armas",
+      "healthDivisor": 10,
+      "slots": 1,
+      "type": "buff",
+      "points": 3,
+      "weight": 4,
+      "category": "core",
+      "languages": {
+        "en": {
+          "name": "Bomb Storage",
+          "description": "Increases the number of missiles/grenades/bombs/mines etc per storage equipped. Requires a bonus action to reload bombs used by your weapon. +4 to your mech's weight unless destroyed or fully used. +12 to missiles/grenades/bombs/mines that your weapons can use."
+        },
+        "es": {
+          "name": "pupu",
+          "description": "Aumenta la cantidad de misiles/granadas/bombas/minas etc por cada almacén, necesitas una acción bonus para recargar las bombas usadas en tu arma. +4 en el peso de tu mecha a menos que sea destruido o usado completamente. +12 en misiles/granadas/bombas/minas etc que puedan usar tus armas"
+        }
+      }
+    }
+  }
 }
