@@ -294,6 +294,11 @@ export function CharacterSheet({ mechRoot, scale = 'HG', scaleMods = {} }: Chara
                 const acroMod = calcModifier(derivedTotals['acro'] ?? 0);
                 const acMod = sumMods(mechRoot, 'acMod') + (currentScaleMods['acMod' as keyof ScaleModifiers] as number ?? 0);
                 val = rendMod + acroMod + 13 + acMod;
+              } else if (e.key === 'movement') {
+                const perfMod = derivedTotals['rend'] ?? 0;
+                const acroMod = derivedTotals['acro'] ?? 0;
+                const compMovement = sumMods(mechRoot, 'movement') + (currentScaleMods['movement' as keyof ScaleModifiers] as number ?? 0);
+                val = (perfMod + acroMod) * 5 + 30 + compMovement;
               } else {
                 val = sumMods(mechRoot, e.modKey) + (currentScaleMods[e.modKey as keyof ScaleModifiers] as number ?? 0);
               }
