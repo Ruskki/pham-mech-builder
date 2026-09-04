@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import type { ComponentNode, ScaleType, ScaleModifiers } from '../../types';
 import { localizedName } from '../../types';
 import { useLang } from '../../i18n';
+import jsPDF from 'jspdf';
 import './CharacterSheet.css';
 
 const STATS_STORAGE_KEY = 'pham-mech-builder-stats';
@@ -169,6 +170,7 @@ interface CharacterSheetProps {
 }
 
 export function CharacterSheet({ mechRoot, scale = 'HG', scaleMods = {} }: CharacterSheetProps) {
+  const { lang } = useLang();
   const [bases, setBases] = useState<StatBases>(loadBases);
   const [hpMap, setHpMap] = useState<Record<string, number>>(loadHpMap);
 
@@ -218,9 +220,139 @@ export function CharacterSheet({ mechRoot, scale = 'HG', scaleMods = {} }: Chara
     setHpMap(prev => ({ ...prev, [nodeId]: value }));
   }, []);
 
+  const mechName = (() => {
+    try { return localStorage.getItem('pham-mech-builder-mech-name') || 'Mech'; } catch { return 'Mech'; }
+  })();
+
+  function collectComponents(node: ComponentNode, out: { name: string; category: string; currentHp: number; maxHp: number; depth: number }[], depth: number, hpMap: Record<string, number>, conModifier: number, healthMod: number) {
+    const comp = node.component;
+    const maxHp = calcHp(conModifier, comp.healthDivisor, healthMod);
+    const currentHp = hpMap[node.id] ?? maxHp;
+    out.push({ name: localizedName(comp, lang) || 'Unnamed', category: comp.category, currentHp, maxHp, depth });
+    for (const child of node.children) {
+      if (child) collectComponents(child, out, depth + 1, hpMap, conModifier, healthMod);
+    }
+  }
+
+  function exportPdf() {
+    try {
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+    const pageW = doc.internal.pageSize.getWidth();
+    let y = 16;
+
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text(mechName, pageW / 2, y, { align: 'center' });
+    y += 10;
+
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Stats', 14, y);
+    y += 6;
+
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Stat', 14, y);
+    doc.text('Base', 60, y);
+    doc.text('Mod', 80, y);
+    doc.text('Total', 100, y);
+    doc.text('Mod', 120, y);
+    y += 5;
+    doc.setFont('helvetica', 'normal');
+    for (const s of MAIN_STATS) {
+      const t = totals[s.key];
+      const mod = calcModifier(t.total);
+      doc.text(s.label, 14, y);
+      doc.text(String(bases[s.key] ?? 0), 60, y);
+      doc.text((t.mod > 0 ? '+' : '') + String(t.mod), 80, y);
+      doc.text(String(t.total), 100, y);
+      doc.text((mod > 0 ? '+' : '') + String(mod), 120, y);
+      y += 5;
+    }
+
+    y += 2;
+    doc.setFont('helvetica', 'bold');
+    doc.text('Derived Stats', 14, y);
+    y += 5;
+    doc.setFont('helvetica', 'normal');
+    for (const s of DERIVED_STATS) {
+      const srcMod = s.from.reduce((acc, k) => acc + calcModifier(mainStatTotal(k)), 0);
+      const bonus = sumMods(mechRoot, s.modKey, hpMap) + (currentScaleMods[s.modKey as keyof ScaleModifiers] as number ?? 0);
+      const total = srcMod + bonus;
+      doc.text(s.label, 14, y);
+      doc.text((total > 0 ? '+' : '') + String(total), 100, y);
+      y += 5;
+    }
+
+    y += 2;
+    doc.setFont('helvetica', 'bold');
+    doc.text('Equipment', 14, y);
+    y += 5;
+    doc.setFont('helvetica', 'normal');
+    for (const e of EQUIP_STATS) {
+      let val: number;
+      if (e.key === 'ac') {
+        const rendMod = calcModifier(derivedTotals['rend'] ?? 0);
+        const acroMod = calcModifier(derivedTotals['acro'] ?? 0);
+        const acMod = sumMods(mechRoot, 'acMod', hpMap) + (currentScaleMods['acMod' as keyof ScaleModifiers] as number ?? 0);
+        val = rendMod + acroMod + 13 + acMod;
+      } else if (e.key === 'movement') {
+        const perfMod = derivedTotals['rend'] ?? 0;
+        const acroMod = derivedTotals['acro'] ?? 0;
+        const compMovement = sumMods(mechRoot, 'movement', hpMap) + (currentScaleMods['movement' as keyof ScaleModifiers] as number ?? 0);
+        val = (perfMod + acroMod) * 5 + 30 + compMovement;
+      } else {
+        val = sumMods(mechRoot, e.modKey, hpMap) + (currentScaleMods[e.modKey as keyof ScaleModifiers] as number ?? 0);
+      }
+      doc.text(e.label, 14, y);
+      doc.text(String(val), 100, y);
+      y += 5;
+    }
+
+    if (mechRoot) {
+      y += 4;
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Components', 14, y);
+      y += 6;
+
+      const comps: { name: string; category: string; currentHp: number; maxHp: number; depth: number }[] = [];
+      collectComponents(mechRoot, comps, 0, hpMap, conModifier, healthMod);
+
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Component', 14, y);
+      doc.text('Type', 80, y);
+      doc.text('HP', 105, y);
+      y += 5;
+      doc.setFont('helvetica', 'normal');
+      for (const c of comps) {
+        if (y > 270) { doc.addPage(); y = 16; }
+        const indent = c.depth * 4;
+        doc.text(c.name, 14 + indent, y);
+        doc.text(c.category, 80, y);
+        doc.text(`${c.currentHp} / ${c.maxHp}`, 105, y);
+        if (c.currentHp <= 0) {
+          doc.setTextColor(180, 60, 60);
+          doc.text('DESTROYED', 130, y);
+          doc.setTextColor(0, 0, 0);
+        }
+        y += 5;
+      }
+    }
+
+    const blob = doc.output('blob');
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+  } catch (e) { console.error('PDF export failed:', e); }
+  }
+
   return (
     <div className="sheet-page">
-      <h2>Character Sheet</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h2>Character Sheet</h2>
+        <button className="export-pdf-btn" onClick={exportPdf}>Export PDF</button>
+      </div>
       <div className="sheet-content">
         <div className="sheet-health-section">
           <h3>Component Health</h3>

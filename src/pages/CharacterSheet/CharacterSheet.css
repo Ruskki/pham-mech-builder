@@ -10,6 +10,25 @@
   color: #e94560;
 }
 
+.export-pdf-btn {
+  margin-bottom: 0.5rem;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+  font-family: inherit;
+  font-weight: 600;
+  color: #e0e0e0;
+  background: #0f3460;
+  border: 1px solid #1a3a6e;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: 0.15s;
+}
+
+.export-pdf-btn:hover {
+  background: #e94560;
+  border-color: #e94560;
+}
+
 .placeholder-text {
   color: #667788;
   font-size: 0.9rem;
