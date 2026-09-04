@@ -273,8 +273,8 @@ export interface StoredBuild {
   customs: PremadeData[];
   tree: CompactNode;
   name?: string;
-  archetypes?: string[];
-  spec?: string;
+  archetypes?: number[];
+  spec?: number;
   model?: string;
   scale?: string;
   stats?: Record<string, number>;

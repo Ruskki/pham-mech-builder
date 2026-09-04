@@ -56,23 +56,26 @@ function loadHpMap(): Record<string, number> {
   }
 }
 
-function loadArchetypes(defaults: ArchetypeOption[], lang: string): Set<string> {
+function loadArchetypes(defaults: ArchetypeOption[]): Set<number> {
   try {
     const raw = localStorage.getItem(ARCHETYPES_STORAGE_KEY);
     if (raw) {
-      const arr: string[] = JSON.parse(raw);
-      return new Set(arr.filter(a => defaults.some(d => localizedArchetypeLabel(d, lang) === a)));
+      const arr: number[] = JSON.parse(raw);
+      return new Set(arr.filter(i => i >= 0 && i < defaults.length));
     }
   } catch {}
-  return new Set([localizedArchetypeLabel(defaults[0]!, lang) || 'Striker']);
+  return new Set([0]);
 }
 
-function loadSpec(defaults: ArchetypeOption[], lang: string): string | null {
+function loadSpec(defaults: ArchetypeOption[]): number | null {
   try {
     const stored = localStorage.getItem(SPEC_STORAGE_KEY);
-    if (stored && defaults.some(d => localizedArchetypeLabel(d, lang) === stored)) return stored;
+    if (stored !== null) {
+      const idx = Number(stored);
+      if (idx >= 0 && idx < defaults.length) return idx;
+    }
   } catch {}
-  return localizedArchetypeLabel(defaults[0]!, lang) || 'Striker';
+  return 0;
 }
 
 function loadModel(): string {
@@ -115,8 +118,8 @@ interface SidePanelProps {
 export function SidePanel({ componentPoints = 0, mechRoot = null, scale, setScale, scaleMods, setScaleMods, archetypes, models = [], onTotalChange, statMin = 5, maxStatPoints = 27, onStatPointsChange, onStatBelowMinChange }: SidePanelProps) {
   const { lang } = useLang();
   const [bases, setBases] = useState<StatBases>(loadBases);
-  const [selected, setSelected] = useState<Set<string>>(() => loadArchetypes(archetypes, lang));
-  const [spec, setSpec] = useState<string | null>(() => loadSpec(archetypes, lang));
+  const [selected, setSelected] = useState<Set<number>>(() => loadArchetypes(archetypes));
+  const [spec, setSpec] = useState<number | null>(() => loadSpec(archetypes));
   const [model, setModel] = useState(() => loadModel());
   const [hpMap, setHpMap] = useState<Record<string, number>>(loadHpMap);
 
@@ -149,7 +152,7 @@ export function SidePanel({ componentPoints = 0, mechRoot = null, scale, setScal
   }, [selected]);
 
   useEffect(() => {
-    if (spec) localStorage.setItem(SPEC_STORAGE_KEY, spec);
+    if (spec !== null) localStorage.setItem(SPEC_STORAGE_KEY, String(spec));
     else localStorage.removeItem(SPEC_STORAGE_KEY);
   }, [spec]);
 
@@ -204,21 +207,21 @@ export function SidePanel({ componentPoints = 0, mechRoot = null, scale, setScal
   const currentModelValid = scaleModelNames.includes(model);
   const resolvedModel = currentModelValid ? model : scaleModelNames[0];
 
-  const handleLeftClick = useCallback((label: string) => {
+  const handleLeftClick = useCallback((idx: number) => {
     setSelected(prev => {
       const next = new Set(prev);
-      if (next.has(label)) next.delete(label);
-      else next.add(label);
+      if (next.has(idx)) next.delete(idx);
+      else next.add(idx);
       return next;
     });
   }, []);
 
-  const handleRightClick = useCallback((e: React.MouseEvent, label: string) => {
+  const handleRightClick = useCallback((e: React.MouseEvent, idx: number) => {
     e.preventDefault();
-    setSpec(prev => prev === label ? null : label);
+    setSpec(prev => prev === idx ? null : idx);
     setSelected(prev => {
-      if (prev.has(label)) return prev;
-      return new Set([...prev, label]);
+      if (prev.has(idx)) return prev;
+      return new Set([...prev, idx]);
     });
   }, []);
 
@@ -229,7 +232,7 @@ export function SidePanel({ componentPoints = 0, mechRoot = null, scale, setScal
   );
 
   const archetypeCost = archetypes
-    .filter(a => selected.has(localizedArchetypeLabel(a, lang)))
+    .filter((_, i) => selected.has(i))
     .reduce((s, a) => s + a.cost, 0);
 
   const total = archetypeCost + componentPoints;
@@ -320,16 +323,16 @@ export function SidePanel({ componentPoints = 0, mechRoot = null, scale, setScal
       <div className="meta-group">
         <div className="meta-group-label">Archetypes</div>
         <div className="meta-items">
-           {archetypes.map(a => {
+           {archetypes.map((a, idx) => {
              const label = localizedArchetypeLabel(a, lang);
-             const isSelected = selected.has(label);
-             const isSpec = spec === label;
+             const isSelected = selected.has(idx);
+             const isSpec = spec === idx;
              return (
                <button
-                 key={label}
+                 key={idx}
                  className={`meta-item ${isSelected ? 'on' : ''} ${isSpec ? 'spec' : ''}`}
-                 onClick={() => handleLeftClick(label)}
-                 onContextMenu={e => handleRightClick(e, label)}
+                 onClick={() => handleLeftClick(idx)}
+                 onContextMenu={e => handleRightClick(e, idx)}
                >
                 <span className="meta-marker">
                   {isSpec ? '★' : isSelected ? '[x]' : '[ ]'}

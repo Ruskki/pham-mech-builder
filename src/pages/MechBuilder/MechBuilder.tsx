@@ -63,10 +63,10 @@ export function MechBuilder({ customComponents, mechRoot: rootNode, onMechRootCh
       if (found) customs.push(found);
     }
 
-    const archArr: string[] = [];
+    const archArr: number[] = [];
     try { const raw = localStorage.getItem('pham-mech-builder-archetypes'); if (raw) archArr.push(...JSON.parse(raw)); } catch {}
     let specVal: string | undefined;
-    try { specVal = localStorage.getItem('pham-mech-builder-spec') ?? undefined; } catch {}
+    try { const raw = localStorage.getItem('pham-mech-builder-spec'); if (raw !== null) specVal = raw; } catch {}
     let modelVal: string | undefined;
     try { modelVal = localStorage.getItem('pham-mech-builder-model') ?? undefined; } catch {}
     let statsVal: Record<string, number> | undefined;
@@ -109,10 +109,12 @@ export function MechBuilder({ customComponents, mechRoot: rootNode, onMechRootCh
           if (raw.name) setMechName(raw.name);
           if (raw.scale) setScale(raw.scale as ScaleType);
           if (Array.isArray(raw.archetypes)) {
-            try { localStorage.setItem('pham-mech-builder-archetypes', JSON.stringify(raw.archetypes)); } catch {}
+            if (raw.archetypes.length > 0 && typeof raw.archetypes[0] === 'number') {
+              try { localStorage.setItem('pham-mech-builder-archetypes', JSON.stringify(raw.archetypes)); } catch {}
+            }
           }
-          if (raw.spec) {
-            try { localStorage.setItem('pham-mech-builder-spec', raw.spec); } catch {}
+          if (raw.spec !== undefined && raw.spec !== null) {
+            try { localStorage.setItem('pham-mech-builder-spec', String(raw.spec)); } catch {}
           }
           if (raw.model) {
             try { localStorage.setItem('pham-mech-builder-model', raw.model); } catch {}
