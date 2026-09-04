@@ -150,7 +150,7 @@ export function MechBuilder({ customComponents, mechRoot: rootNode, onMechRootCh
       setRootNode(removeById(rootNode, id));
     }
     setPickingTarget(null);
-  }, []);
+  }, [rootNode]);
 
   const componentPoints = useMemo(() => sumComponentPoints(rootNode), [rootNode]);
 
