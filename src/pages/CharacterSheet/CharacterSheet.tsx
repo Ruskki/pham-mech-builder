@@ -121,7 +121,7 @@ function HealthRow({ node, conModifier, healthMod, hpMap, onSetHp }: HealthRowPr
   return (
     <div className="health-tree">
       <div className={`health-row ${currentHp <= 0 ? 'hr-destroyed' : ''}`}>
-        <span className="hr-name" title={comp.name}>{localizedName(comp, lang) || 'Unnamed'}</span>
+        <span className="hr-name" title={localizedName(comp, lang)}>{localizedName(comp, lang) || 'Unnamed'}</span>
         <span className="hr-type">
           <span className="hr-type-badge" style={{ background: color }}>{comp.category}</span>
         </span>

@@ -1,5 +1,7 @@
 import { useMemo, useRef, useEffect, useState } from 'react';
 import type { ComponentNode } from '../../types';
+import { localizedName } from '../../types';
+import { useLang } from '../../i18n';
 import './GraphView.css';
 
 interface FlatNode {
@@ -17,7 +19,7 @@ interface FlatEdge {
   target: string;
 }
 
-function flatten(root: ComponentNode): { nodes: FlatNode[]; edges: FlatEdge[] } {
+function flatten(root: ComponentNode, lang: string): { nodes: FlatNode[]; edges: FlatEdge[] } {
   const nodes: FlatNode[] = [];
   const edges: FlatEdge[] = [];
   let i = 0;
@@ -26,7 +28,7 @@ function flatten(root: ComponentNode): { nodes: FlatNode[]; edges: FlatEdge[] } 
     const angle = (i++ * 1.618) * Math.PI * 2;
     nodes.push({
       id: node.id,
-      label: node.component.name || 'Unnamed',
+      label: localizedName(node.component, lang) || 'Unnamed',
       category: node.component.category,
       x: Math.cos(angle) * 200,
       y: Math.sin(angle) * 200,
@@ -143,12 +145,13 @@ export function GraphView({ root }: GraphViewProps) {
   const [cx, setCx] = useState(400);
   const [cy, setCy] = useState(300);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const { lang } = useLang();
 
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
     const obs = new ResizeObserver(entries => {
-      const rect = entries[0].contentRect;
+      const rect = entries[0]!.contentRect;
       setCx(rect.width / 2);
       setCy(rect.height / 2);
     });
@@ -158,10 +161,10 @@ export function GraphView({ root }: GraphViewProps) {
 
   const { nodes, edges } = useMemo(() => {
     if (!root) return { nodes: [], edges: [] };
-    const { nodes: flatNodes, edges: flatEdges } = flatten(root);
+    const { nodes: flatNodes, edges: flatEdges } = flatten(root, lang);
     const simNodes = simulate(flatNodes, flatEdges);
     return { nodes: simNodes, edges: flatEdges };
-  }, [root]);
+  }, [root, lang]);
 
   const connected = useMemo(() => {
     const set = new Set<string>();

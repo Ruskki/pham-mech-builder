@@ -69,7 +69,7 @@ export function ComponentPicker({ onPick, onClose, customComponents = [], premad
               </div>
               {g.items.map((item, i) => (
                 <button
-                  key={`${item.isCustom ? 'c' : 'p'}-${item.data.name}-${i}`}
+                  key={`${item.isCustom ? 'c' : 'p'}-${item.data.id}-${i}`}
                   className="picker-item"
                   onClick={() => onPick(premadeToComponent(item.data))}
                 >

@@ -12,10 +12,7 @@ interface ComponentCreatorProps {
   onUpdate: (index: number, comp: PremadeData) => void;
   onRemove: (index: number) => void;
   premadeData: Record<string, PremadeData[]>;
-  rawPremades: Record<string, PremadeData[]>;
-  premadeEdits: Record<number, PremadeData>;
-  onUpdatePremadeEdit: (comp: PremadeData) => void;
-  onRemovePremadeEdit: (id: number) => void;
+  onUpdatePremade: (cat: string, comp: PremadeData) => void;
   archetypes: ArchetypeOption[];
   setArchetypes: Dispatch<SetStateAction<ArchetypeOption[]>>;
   models: ModelOption[];
@@ -59,10 +56,7 @@ export function ComponentCreator({
   onUpdate,
   onRemove,
   premadeData,
-  rawPremades,
-  premadeEdits,
-  onUpdatePremadeEdit,
-  onRemovePremadeEdit,
+  onUpdatePremade,
   archetypes,
   setArchetypes,
   models,
@@ -78,7 +72,7 @@ export function ComponentCreator({
   const [editingCustomIdx, setEditingCustomIdx] = useState<number | null>(null);
   const [form, setForm] = useState<PremadeData>(defaultPremade('core'));
 
-  const [archetypeForm, setArchetypeForm] = useState<ArchetypeOption>({ label: '', cost: 0 });
+  const [archetypeForm, setArchetypeForm] = useState<ArchetypeOption>({ languages: {}, cost: 0 });
   const [editingArchetypeIdx, setEditingArchetypeIdx] = useState<number | null>(null);
 
   const [modelForm, setModelForm] = useState<ModelOption>({ name: '', scales: [] });
@@ -102,7 +96,7 @@ export function ComponentCreator({
   const prevFormIdRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (editingCustomIdx !== null || form.id <= 0 || form.id in premadeEdits) {
+    if (editingCustomIdx !== null || form.id <= 0) {
       prevPremadeDataRef.current = premadeData;
       prevFormIdRef.current = form.id;
       return;
@@ -114,7 +108,7 @@ export function ComponentCreator({
     if (!selectedNew && !dataChanged) return;
     const base = findPremadeById(premadeData, form.id);
     if (base) setForm({ ...base });
-  }, [premadeEdits, form.id, editingCustomIdx, premadeData]);
+  }, [form.id, editingCustomIdx, premadeData]);
 
   function setField<K extends keyof PremadeData>(key: K, value: PremadeData[K]) {
     setForm(prev => ({ ...prev, [key]: value }));
@@ -173,7 +167,7 @@ export function ComponentCreator({
     if (editingCustomIdx !== null) {
       onUpdate(editingCustomIdx, form);
     } else if (form.id > 0) {
-      onUpdatePremadeEdit(form);
+      onUpdatePremade(form.category, form);
     } else {
       onAdd({ ...form, id: nextId() });
     }
@@ -189,11 +183,6 @@ export function ComponentCreator({
       setEditingCustomIdx(null);
       setForm(defaultPremade('core'));
     }
-  }
-
-  function handleRevertPremade() {
-    onRemovePremadeEdit(form.id);
-    setForm({ ...findPremadeById(premadeData, form.id) ?? defaultPremade(form.category) });
   }
 
   function exportComponents() {
@@ -238,7 +227,7 @@ export function ComponentCreator({
             setEditingCustomIdx(null);
             setForm(defaultPremade('core'));
             setEditingArchetypeIdx(null);
-            setArchetypeForm({ label: '', cost: 0 });
+            setArchetypeForm({ languages: {}, cost: 0 });
             setEditingModelIdx(null);
             setModelForm({ name: '', scales: [] });
             setSelectedScale(null);
@@ -260,8 +249,8 @@ export function ComponentCreator({
 
   function handleMassExport() {
     const categorized: Record<string, PremadeData[]> = {};
-    for (const [cat, comps] of Object.entries(rawPremades)) {
-      categorized[cat] = (comps ?? []).map(c => ({ ...c, category: cat }));
+    for (const [cat, comps] of Object.entries(premadeData)) {
+      categorized[cat] = (comps ?? []).map(c => ({ ...c, category: cat as ComponentCategory }));
     }
     const data = {
       ...categorized,
@@ -269,7 +258,6 @@ export function ComponentCreator({
       archetypes,
       models,
       scales: scaleMods,
-      premadeEdits,
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -286,7 +274,7 @@ export function ComponentCreator({
     setEditingCustomIdx(null);
     setForm(defaultPremade('core'));
     setEditingArchetypeIdx(null);
-    setArchetypeForm({ label: '', cost: 0 });
+    setArchetypeForm({ languages: {}, cost: 0 });
     setEditingModelIdx(null);
     setModelForm({ name: '', scales: [] });
     setSelectedScale(null);
@@ -309,22 +297,25 @@ export function ComponentCreator({
 
   function handleArchetypeNew() {
     setEditingArchetypeIdx(null);
-    setArchetypeForm({ label: '', cost: 0 });
+    setArchetypeForm({ languages: {}, cost: 0 });
   }
 
   function handleArchetypeSave() {
-    const label = archetypeForm.label.trim();
+    const label = archetypeForm.languages?.[lang]?.label?.trim() ?? '';
     if (!label) return;
-    const dup = archetypes.some((a, i) => a.label === label && i !== editingArchetypeIdx);
+    const dup = archetypes.some((a, i) => localizedArchetypeLabel(a, lang) === label && i !== editingArchetypeIdx);
     if (dup) return;
     if (editingArchetypeIdx !== null) {
       setArchetypes(prev => {
         const next = [...prev];
-        next[editingArchetypeIdx] = { ...archetypeForm, label };
+        const existing = next[editingArchetypeIdx];
+        const langCopy = { ...(existing?.languages ?? {}) };
+        langCopy[lang] = { label };
+        next[editingArchetypeIdx] = { ...archetypeForm, languages: langCopy };
         return next;
       });
     } else {
-      setArchetypes(prev => [...prev, { ...archetypeForm, label }]);
+      setArchetypes(prev => [...prev, { ...archetypeForm, languages: { ...(archetypeForm.languages ?? {}), [lang]: { label } } }]);
     }
   }
 
@@ -479,19 +470,16 @@ export function ComponentCreator({
                       const sel =
                         entry.kind === 'custom'
                           ? editingCustomIdx === entry.customIdx
-                          : editingCustomIdx === null && form.name === entry.data.name && form.category === entry.data.category;
+                           : editingCustomIdx === null && localizedName(form, lang) === localizedName(entry.data, lang) && form.category === entry.data.category;
                       return (
                         <button
-                          key={`${entry.kind}-${entry.data.name}-${i}`}
+                           key={`${entry.kind}-${localizedName(entry.data, lang)}-${i}`}
                           className={`creator-lib-item ${sel ? 'sel' : ''}`}
                           onClick={() => select(entry)}
                         >
                           <span className="creator-lib-name">{localizedName(entry.data, lang)}</span>
                           <span className={`creator-lib-pts ${entry.data.points > 0 ? '' : 'zero'}`}>{entry.data.points}p</span>
                           {entry.kind === 'custom' && <span className="creator-lib-badge">custom</span>}
-                          {entry.kind === 'premade' && (entry.data.id in premadeEdits) && (
-                            <span className="creator-lib-badge">edited</span>
-                          )}
                         </button>
                       );
                     })}
@@ -504,19 +492,19 @@ export function ComponentCreator({
             )}
             {tab === 'archetypes' && (
               <>
-                {archetypes
-                  .filter(a => !search || normalizeStr(localizedArchetypeLabel(a, lang)).includes(normalizeStr(search)))
-                  .map((a, i) => (
-                    <button
-                      key={a.label}
-                      className={`creator-lib-item ${editingArchetypeIdx === i ? 'sel' : ''}`}
-                      onClick={() => selectArchetype(i)}
-                    >
-                      <span className="creator-lib-name">{localizedArchetypeLabel(a, lang)}</span>
-                      <span className="creator-lib-badge">{a.cost}p</span>
-                    </button>
-                  ))}
-                {archetypes.filter(a => !search || normalizeStr(a.label).includes(normalizeStr(search))).length === 0 && (
+                 {archetypes
+                   .filter(a => !search || normalizeStr(localizedArchetypeLabel(a, lang)).includes(normalizeStr(search)))
+                   .map((a, i) => (
+                     <button
+                       key={localizedArchetypeLabel(a, lang)}
+                       className={`creator-lib-item ${editingArchetypeIdx === i ? 'sel' : ''}`}
+                       onClick={() => selectArchetype(i)}
+                     >
+                       <span className="creator-lib-name">{localizedArchetypeLabel(a, lang)}</span>
+                       <span className="creator-lib-badge">{a.cost}p</span>
+                     </button>
+                   ))}
+                 {archetypes.filter(a => !search || normalizeStr(localizedArchetypeLabel(a, lang)).includes(normalizeStr(search))).length === 0 && (
                   <div className="creator-lib-empty">No archetypes</div>
                 )}
               </>
@@ -634,20 +622,6 @@ export function ComponentCreator({
                   </button>
                 ))}
               </div>
-
-              <label>
-                Name
-                <input value={form.name} onChange={e => setField('name', e.target.value)} />
-              </label>
-
-              <label>
-                Description
-                <textarea
-                  value={form.description}
-                  onChange={e => setField('description', e.target.value)}
-                  rows={2}
-                />
-              </label>
 
               <div className="form-row">
                 <label>
@@ -877,11 +851,6 @@ export function ComponentCreator({
                 <button className="creator-btn creator-btn-clone" onClick={handleSaveAsNew}>
                   Save As New
                 </button>
-                {isEditingPremade && (form.id in premadeEdits) && (
-                  <button className="creator-btn creator-btn-delete" onClick={handleRevertPremade}>
-                    Revert
-                  </button>
-                )}
                 {isEditingPremade && (
                   <button
                     className="creator-btn creator-btn-delete"
@@ -909,15 +878,15 @@ export function ComponentCreator({
             <div className="creator-form">
               {editingArchetypeIdx !== null && (
                 <div className="panel-stat-row" style={{ fontSize: '0.75rem', color: '#667788' }}>
-                  Editing: {localizedArchetypeLabel(archetypes[editingArchetypeIdx] ?? { label: '' }, lang)}
+                  Editing: {localizedArchetypeLabel(archetypes[editingArchetypeIdx] ?? { languages: {} }, lang)}
                 </div>
               )}
               <div className="form-row">
                 <label>
                   Label
                   <input
-                    value={archetypeForm.label}
-                    onChange={e => setArchetypeForm(prev => ({ ...prev, label: e.target.value }))}
+                    value={archetypeForm.languages?.[lang]?.label ?? ''}
+                    onChange={e => setArchetypeForm(prev => ({ ...prev, languages: { ...(prev.languages ?? {}), [lang]: { label: e.target.value } } }))}
                     placeholder="e.g. Brute"
                   />
                 </label>

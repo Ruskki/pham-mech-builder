@@ -1,10 +1,11 @@
 import { useState, useCallback, useRef, useMemo } from 'react';
 import type { MechComponent, ComponentNode, PremadeData, StoredBuild, ScaleType, ScaleModifiers, ArchetypeOption, ModelOption } from '../../types';
-import { createNode, addToSlot, removeById, buildPremadeLib, expandTree, compactTree, collectCustomIds, premadeToComponent, countComponentById } from '../../types';
+import { createNode, addToSlot, removeById, buildPremadeLib, expandTree, compactTree, collectCustomIds, premadeToComponent, countComponentById, localizedName } from '../../types';
 import { SidePanel } from './SidePanel';
 import { MechTree, RootSlot } from './MechTree';
 import { GraphView } from './GraphView';
 import { ComponentPicker } from './ComponentPicker';
+import { useLang } from '../../i18n';
 import './MechBuilder.css';
 
 interface MechBuilderProps {
@@ -40,6 +41,7 @@ export function MechBuilder({ customComponents, mechRoot: rootNode, onMechRootCh
   const [statPointsOver, setStatPointsOver] = useState(0);
   const [statBelowMin, setStatBelowMin] = useState(0);
   const importRef = useRef<HTMLInputElement>(null);
+  const { lang } = useLang();
 
   const premadeLib = useMemo(() => buildPremadeLib(premadeData), [premadeData]);
 
@@ -98,7 +100,7 @@ export function MechBuilder({ customComponents, mechRoot: rootNode, onMechRootCh
     if (component.maxCount && component.maxCount > 0) {
       const current = countComponentById(rootNode, component.id);
       if (current >= component.maxCount) {
-        alert(`Cannot add more ${component.name} — limit is ${component.maxCount}.`);
+        alert(`Cannot add more ${localizedName(component, lang)} — limit is ${component.maxCount}.`);
         return;
       }
     }
@@ -111,10 +113,7 @@ export function MechBuilder({ customComponents, mechRoot: rootNode, onMechRootCh
     }
     if (parentId === null || slotIndex === null) return;
 
-    setRootNode(prev => {
-      if (!prev) return prev;
-      return addToSlot(prev, parentId, slotIndex, newNode);
-    });
+    setRootNode(addToSlot(rootNode, parentId, slotIndex, newNode));
   }
 
   const handleSelectSlot = useCallback((parentId: string, slotIndex: number) => {
@@ -139,11 +138,11 @@ export function MechBuilder({ customComponents, mechRoot: rootNode, onMechRootCh
   }, []);
 
   const handleRemove = useCallback((id: string) => {
-    setRootNode(prev => {
-      if (!prev) return prev;
-      if (prev.id === id) return null;
-      return removeById(prev, id);
-    });
+    if (rootNode?.id === id) {
+      setRootNode(null);
+    } else if (rootNode) {
+      setRootNode(removeById(rootNode, id));
+    }
     setPickingTarget(null);
   }, []);
 

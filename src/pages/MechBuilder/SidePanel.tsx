@@ -46,23 +46,23 @@ function loadBases(): StatBases {
   }
 }
 
-function loadArchetypes(defaults: ArchetypeOption[]): Set<string> {
+function loadArchetypes(defaults: ArchetypeOption[], lang: string): Set<string> {
   try {
     const raw = localStorage.getItem(ARCHETYPES_STORAGE_KEY);
     if (raw) {
       const arr: string[] = JSON.parse(raw);
-      return new Set(arr.filter(a => defaults.some(d => d.label === a)));
+      return new Set(arr.filter(a => defaults.some(d => localizedArchetypeLabel(d, lang) === a)));
     }
   } catch {}
-  return new Set([defaults[0]?.label ?? 'Striker']);
+  return new Set([localizedArchetypeLabel(defaults[0]!, lang) || 'Striker']);
 }
 
-function loadSpec(defaults: ArchetypeOption[]): string | null {
+function loadSpec(defaults: ArchetypeOption[], lang: string): string | null {
   try {
     const stored = localStorage.getItem(SPEC_STORAGE_KEY);
-    if (stored && defaults.some(d => d.label === stored)) return stored;
+    if (stored && defaults.some(d => localizedArchetypeLabel(d, lang) === stored)) return stored;
   } catch {}
-  return defaults[0]?.label ?? 'Striker';
+  return localizedArchetypeLabel(defaults[0]!, lang) || 'Striker';
 }
 
 function loadModel(): string {
@@ -101,11 +101,11 @@ interface SidePanelProps {
 }
 
 export function SidePanel({ componentPoints = 0, mechRoot = null, scale, setScale, scaleMods, setScaleMods, archetypes, models = [], onTotalChange, statMin = 5, maxStatPoints = 27, onStatPointsChange, onStatBelowMinChange }: SidePanelProps) {
-  const [bases, setBases] = useState<StatBases>(loadBases);
-  const [selected, setSelected] = useState<Set<string>>(() => loadArchetypes(archetypes));
-  const [spec, setSpec] = useState<string | null>(() => loadSpec(archetypes));
-  const [model, setModel] = useState(() => loadModel());
   const { lang } = useLang();
+  const [bases, setBases] = useState<StatBases>(loadBases);
+  const [selected, setSelected] = useState<Set<string>>(() => loadArchetypes(archetypes, lang));
+  const [spec, setSpec] = useState<string | null>(() => loadSpec(archetypes, lang));
+  const [model, setModel] = useState(() => loadModel());
 
   useEffect(() => {
     localStorage.setItem(STATS_STORAGE_KEY, JSON.stringify(bases));
@@ -196,7 +196,7 @@ export function SidePanel({ componentPoints = 0, mechRoot = null, scale, setScal
   );
 
   const archetypeCost = archetypes
-    .filter(a => selected.has(a.label))
+    .filter(a => selected.has(localizedArchetypeLabel(a, lang)))
     .reduce((s, a) => s + a.cost, 0);
 
   const total = archetypeCost + componentPoints;
@@ -282,16 +282,17 @@ export function SidePanel({ componentPoints = 0, mechRoot = null, scale, setScal
       <div className="meta-group">
         <div className="meta-group-label">Archetypes</div>
         <div className="meta-items">
-          {archetypes.map(a => {
-            const isSelected = selected.has(a.label);
-            const isSpec = spec === a.label;
-            return (
-              <button
-                key={a.label}
-                className={`meta-item ${isSelected ? 'on' : ''} ${isSpec ? 'spec' : ''}`}
-                onClick={() => handleLeftClick(a.label)}
-                onContextMenu={e => handleRightClick(e, a.label)}
-              >
+           {archetypes.map(a => {
+             const label = localizedArchetypeLabel(a, lang);
+             const isSelected = selected.has(label);
+             const isSpec = spec === label;
+             return (
+               <button
+                 key={label}
+                 className={`meta-item ${isSelected ? 'on' : ''} ${isSpec ? 'spec' : ''}`}
+                 onClick={() => handleLeftClick(label)}
+                 onContextMenu={e => handleRightClick(e, label)}
+               >
                 <span className="meta-marker">
                   {isSpec ? '★' : isSelected ? '[x]' : '[ ]'}
                 </span>

@@ -13,40 +13,27 @@ export interface LocalizedArchetype {
 }
 
 export function localizedName(
-  comp: { name: string; languages?: LocalizedEntry },
+  comp: { languages?: LocalizedEntry },
   lang: string,
 ): string {
-  const entry = comp.languages?.[lang];
-  if (entry?.name) return entry.name;
-  const fallback = comp.languages?.['en'];
-  if (fallback?.name) return fallback.name;
-  return comp.name;
+  return comp.languages?.[lang]?.name ?? '';
 }
 
 export function localizedDesc(
-  comp: { description: string; languages?: LocalizedEntry },
+  comp: { languages?: LocalizedEntry },
   lang: string,
 ): string {
-  const entry = comp.languages?.[lang];
-  if (entry?.description) return entry.description;
-  const fallback = comp.languages?.['en'];
-  if (fallback?.description) return fallback.description;
-  return comp.description;
+  return comp.languages?.[lang]?.description ?? '';
 }
 
 export function localizedArchetypeLabel(
-  arch: { label: string; languages?: LocalizedArchetype },
+  arch: { languages?: LocalizedArchetype },
   lang: string,
 ): string {
-  const entry = arch.languages?.[lang];
-  if (entry?.label) return entry.label;
-  const fallback = arch.languages?.['en'];
-  if (fallback?.label) return fallback.label;
-  return arch.label;
+  return arch.languages?.[lang]?.label ?? '';
 }
 
 export interface ArchetypeOption {
-  label: string;
   cost: number;
   languages?: LocalizedArchetype;
 }
@@ -76,8 +63,6 @@ export function normalizeStr(s: string): string {
 
 export interface BaseComponentFields {
   id: number;
-  name: string;
-  description: string;
   healthDivisor: number;
   slots: number;
   type: string;
@@ -135,8 +120,6 @@ export function generateId(): string {
 export function defaultComponent(category: ComponentCategory): MechComponent {
   const base = {
     id: 0,
-    name: '',
-    description: '',
     healthDivisor: 1,
     slots: 0,
     type: '',
@@ -198,8 +181,6 @@ export function removeById(root: ComponentNode, id: string): ComponentNode | nul
 
 export interface PremadeData {
   id: number;
-  name: string;
-  description: string;
   healthDivisor: number;
   slots: number;
   type: string;
@@ -230,7 +211,7 @@ export interface PremadeData {
 
 export function defaultPremade(category: ComponentCategory, id = 0): PremadeData {
   return {
-    id, name: '', description: '', healthDivisor: 1, slots: 0, type: '', points: 0,
+    id, healthDivisor: 1, slots: 0, type: '', points: 0,
     category,
   };
 }
@@ -238,8 +219,6 @@ export function defaultPremade(category: ComponentCategory, id = 0): PremadeData
 export function premadeToComponent(data: PremadeData): MechComponent {
   const base = {
     id: data.id,
-    name: data.name,
-    description: data.description,
     healthDivisor: data.healthDivisor,
     slots: data.slots,
     type: data.type,
@@ -338,7 +317,7 @@ export function expandTree(
   if (!comp) {
     return {
       id: node.id,
-      component: { ...defaultComponent('core'), name: `[Missing ID ${node.componentId}]` } as MechComponent,
+      component: { ...defaultComponent('core'), category: 'core' } as MechComponent,
       children: node.children.map(c => (c ? expandTree(c, lib) : null)),
     };
   }

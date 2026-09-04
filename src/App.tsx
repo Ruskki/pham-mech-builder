@@ -1,6 +1,6 @@
-import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import type { ComponentNode, PremadeData, StoredBuild, ScaleType, ScaleModifiers, ArchetypeOption, ModelOption } from './types';
-import { buildPremadeLib, compactTree, expandTree, mergePremades, premadeToComponent } from './types';
+import { compactTree, expandTree, premadeToComponent, buildPremadeLib } from './types';
 import { MechBuilder } from './pages/MechBuilder/MechBuilder';
 import { ComponentCreator } from './pages/ComponentCreator/ComponentCreator';
 import { CharacterSheet } from './pages/CharacterSheet/CharacterSheet';
@@ -28,7 +28,6 @@ interface UserData {
   archetypes: ArchetypeOption[];
   models: ModelOption[];
   scales: Record<string, ScaleModifiers>;
-  premadeEdits: Record<number, PremadeData>;
 }
 
 const EMPTY_DATA: UserData = {
@@ -37,7 +36,6 @@ const EMPTY_DATA: UserData = {
   archetypes: DEFAULT_ARCHETYPES,
   models: DEFAULT_MODELS,
   scales: { ...DEFAULT_SCALE_MODIFIERS },
-  premadeEdits: {},
 };
 
 let saveTimer: ReturnType<typeof setTimeout> | null = null;
@@ -54,7 +52,6 @@ function saveData(data: UserData) {
         archetypes: data.archetypes,
         models: data.models,
         scales: data.scales,
-        premadeEdits: data.premadeEdits,
       };
       fetch('/api/data', {
         method: 'POST',
@@ -70,7 +67,6 @@ function saveData(data: UserData) {
         archetypes: data.archetypes,
         models: data.models,
         scales: data.scales,
-        premadeEdits: data.premadeEdits,
       }));
     } catch {}
   }
@@ -92,13 +88,24 @@ function parseData(raw: Record<string, unknown>): UserData {
     premades.utility = [];
     premades.weapon = [];
   }
+  const edits = (raw.premadeEdits as Record<number, PremadeData>) ?? {};
+  for (const [idStr, edit] of Object.entries(edits)) {
+    const id = Number(idStr);
+    for (const cat of ['core', 'utility', 'weapon']) {
+      const comps = premades[cat] ?? [];
+      const idx = comps.findIndex(c => c.id === id);
+      if (idx >= 0) {
+        comps[idx] = { ...comps[idx], ...edit };
+        break;
+      }
+    }
+  }
   return {
     premades,
     customComponents: (raw.customComponents as PremadeData[]) ?? [],
     archetypes: (raw.archetypes as ArchetypeOption[]) ?? DEFAULT_ARCHETYPES,
     models: (raw.models as ModelOption[]) ?? DEFAULT_MODELS,
     scales: (raw.scales as Record<string, ScaleModifiers>) ?? { ...DEFAULT_SCALE_MODIFIERS },
-    premadeEdits: (raw.premadeEdits as Record<number, PremadeData>) ?? {},
   };
 }
 
@@ -116,14 +123,14 @@ function loadMechFromStored(stored: StoredBuild, merged: Record<string, PremadeD
   return expandTree(stored.tree, lib);
 }
 
-function loadMech(merged: Record<string, PremadeData[]>, customs: PremadeData[]): ComponentNode | null {
+function loadMech(premades: Record<string, PremadeData[]>, customs: PremadeData[]): ComponentNode | null {
   try {
     const raw = localStorage.getItem('pham-mech-builder-mech');
     if (!raw) return null;
     const stored = JSON.parse(raw);
     if (stored.id && stored.component) return stored as ComponentNode;
     if (!stored.tree) return null;
-    return loadMechFromStored(stored, merged);
+    return loadMechFromStored(stored, premades);
   } catch {
     localStorage.removeItem('pham-mech-builder-mech');
     return null;
@@ -151,7 +158,6 @@ export function App() {
   const [scaleMods, setScaleMods] = useState<Record<ScaleType, ScaleModifiers>>({ ...DEFAULT_SCALE_MODIFIERS });
   const [archetypes, setArchetypes] = useState<ArchetypeOption[]>(DEFAULT_ARCHETYPES);
   const [models, setModels] = useState<ModelOption[]>(DEFAULT_MODELS);
-  const [premadeEdits, setPremadeEdits] = useState<Record<number, PremadeData>>({});
   const [maxPoints, setMaxPoints] = useState<number>(() => {
     try { return Number(localStorage.getItem('pham-mech-builder-max-points')) || 300; } catch { return 300; }
   });
@@ -176,9 +182,7 @@ export function App() {
           setScaleMods(data.scales);
           setArchetypes(data.archetypes);
           setModels(data.models);
-          setPremadeEdits(data.premadeEdits);
-          const merged = mergePremades(data.premades, data.premadeEdits);
-          setMechRoot(loadMech(merged, data.customComponents));
+          setMechRoot(loadMech(data.premades, data.customComponents));
           setLoaded(true);
         })
         .catch(() => setLoaded(true));
@@ -192,9 +196,7 @@ export function App() {
       setScaleMods(data.scales);
       setArchetypes(data.archetypes);
       setModels(data.models);
-      setPremadeEdits(data.premadeEdits);
-      const merged = mergePremades(data.premades, data.premadeEdits);
-      setMechRoot(loadMech(merged, data.customComponents));
+      setMechRoot(loadMech(data.premades, data.customComponents));
       setLoaded(true);
     }
   }, []);
@@ -207,10 +209,9 @@ export function App() {
       archetypes,
       models,
       scales: scaleMods,
-      premadeEdits,
     };
     saveData(dataRef.current);
-  }, [premades, customComponents, archetypes, models, scaleMods, premadeEdits, loaded]);
+  }, [premades, customComponents, archetypes, models, scaleMods, loaded]);
 
   useEffect(() => {
     if (!loaded) return;
@@ -243,15 +244,14 @@ export function App() {
     try { localStorage.setItem('pham-mech-builder-max-stat-points', String(maxStatPoints)); } catch {}
   }, [maxStatPoints]);
 
-  const updatePremadeEdit = useCallback((comp: PremadeData) => {
-    setPremadeEdits(prev => ({ ...prev, [comp.id]: comp }));
-  }, []);
-
-  const removePremadeEdit = useCallback((id: number) => {
-    setPremadeEdits(prev => {
-      const next = { ...prev };
-      delete next[id];
-      return next;
+  const updatePremade = useCallback((cat: string, comp: PremadeData) => {
+    setPremades(prev => {
+      const comps = prev[cat] ?? [];
+      const idx = comps.findIndex(c => c.id === comp.id);
+      if (idx < 0) return prev;
+      const next = [...comps];
+      next[idx] = comp;
+      return { ...prev, [cat]: next };
     });
   }, []);
 
@@ -260,17 +260,7 @@ export function App() {
       ...prev,
       [cat]: (prev[cat] ?? []).filter(c => c.id !== id),
     }));
-    setPremadeEdits(prev => {
-      const next = { ...prev };
-      delete next[id];
-      return next;
-    });
   }, []);
-
-  const mergedPremades = useMemo(
-    () => mergePremades(premades, premadeEdits),
-    [premades, premadeEdits],
-  );
 
   const addCustom = useCallback((comp: PremadeData) => {
     setCustomComponents(prev => [...prev, comp]);
@@ -295,7 +285,6 @@ export function App() {
       archetypes: [],
       models: [],
       scales: {},
-      premadeEdits: {},
     };
     dataRef.current = blank;
     localStorage.removeItem('pham-mech-builder-mech');
@@ -307,7 +296,6 @@ export function App() {
           core: [], utility: [], weapon: [],
           customComponents: [], archetypes: [],
           models: [], scales: {},
-          premadeEdits: {},
         }),
       }).catch(console.error);
     } else {
@@ -315,7 +303,6 @@ export function App() {
     }
     setPremades({ core: [], utility: [], weapon: [] });
     setCustomComponents([]);
-    setPremadeEdits({});
     setArchetypes([]);
     setModels([]);
     setScaleMods({});
@@ -332,7 +319,6 @@ export function App() {
         archetypes: parsed.archetypes,
         models: parsed.models,
         scales: parsed.scales,
-        premadeEdits: parsed.premadeEdits,
       };
       fetch('/api/data', {
         method: 'POST',
@@ -342,7 +328,6 @@ export function App() {
     }
     setPremades(parsed.premades);
     setCustomComponents(parsed.customComponents);
-    setPremadeEdits(parsed.premadeEdits);
     setArchetypes(parsed.archetypes);
     setModels(parsed.models);
     setScaleMods(parsed.scales);
@@ -400,11 +385,8 @@ export function App() {
             onAdd={addCustom}
             onUpdate={updateCustom}
             onRemove={removeCustom}
-            premadeData={mergedPremades}
-            rawPremades={premades}
-            premadeEdits={premadeEdits}
-            onUpdatePremadeEdit={updatePremadeEdit}
-            onRemovePremadeEdit={removePremadeEdit}
+            premadeData={premades}
+            onUpdatePremade={updatePremade}
             archetypes={archetypes}
             setArchetypes={setArchetypes}
             models={models}
@@ -427,7 +409,7 @@ export function App() {
             setScaleMods={setScaleMods}
             archetypes={archetypes}
             models={models}
-            premadeData={mergedPremades}
+            premadeData={premades}
             maxPoints={maxPoints}
             statMin={statMin}
             maxStatPoints={maxStatPoints}
