@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useMemo } from 'react';
+import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import type { MechComponent, ComponentNode, PremadeData, StoredBuild, ScaleType, ScaleModifiers, ArchetypeOption, ModelOption } from '../../types';
 import { createNode, addToSlot, removeById, buildPremadeLib, expandTree, compactTree, collectCustomIds, premadeToComponent, countComponentById, localizedName } from '../../types';
 import { SidePanel } from './SidePanel';
@@ -36,12 +36,18 @@ function sumComponentPoints(node: ComponentNode | null): number {
 export function MechBuilder({ customComponents, mechRoot: rootNode, onMechRootChange: setRootNode, scale, setScale, scaleMods, setScaleMods, archetypes, models, premadeData, maxPoints, statMin, maxStatPoints }: MechBuilderProps) {
   const [pickingTarget, setPickingTarget] = useState<SlotTarget | null>(null);
   const [viewMode, setViewMode] = useState<'tree' | 'graph'>('tree');
-  const [mechName, setMechName] = useState('mech-name');
+  const [mechName, setMechName] = useState(() => {
+    try { return localStorage.getItem('pham-mech-builder-mech-name') || 'mech-name'; } catch { return 'mech-name'; }
+  });
   const [totalPoints, setTotalPoints] = useState(0);
   const [statPointsOver, setStatPointsOver] = useState(0);
   const [statBelowMin, setStatBelowMin] = useState(0);
   const importRef = useRef<HTMLInputElement>(null);
   const { lang } = useLang();
+
+  useEffect(() => {
+    try { localStorage.setItem('pham-mech-builder-mech-name', mechName); } catch {}
+  }, [mechName]);
 
   const premadeLib = useMemo(() => buildPremadeLib(premadeData), [premadeData]);
 
