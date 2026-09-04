@@ -1,6 +1,9 @@
 # pham-mech-builder
 i shamefully vibecoded this cuz i was swamped with uni work and had to put my brainpower somewhere else. i will comeback to this and do a full human rewrite and maybe do something fun like trying angular or making a desktop app
 
+## USING
+[https://ruskki.github.io/pham-mech-builder/](https://ruskki.github.io/pham-mech-builder/)
+
 ## HOW TO INSTALL
 click releases
 
