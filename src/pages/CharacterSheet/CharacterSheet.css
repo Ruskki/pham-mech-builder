@@ -172,6 +172,18 @@
   text-decoration: line-through;
 }
 
+.hr-grayed .health-row {
+  opacity: 0.5;
+}
+
+.hr-grayed .hr-name,
+.hr-grayed .hr-type-badge,
+.hr-grayed .hr-div,
+.hr-grayed .hr-current,
+.hr-grayed .hr-total {
+  color: #556677;
+}
+
 .hr-name {
   flex: 1;
   font-weight: 600;

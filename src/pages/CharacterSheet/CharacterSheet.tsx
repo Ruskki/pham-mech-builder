@@ -58,13 +58,15 @@ function loadHpMap(): Record<string, number> {
   }
 }
 
-function sumMods(node: ComponentNode | null, modKey: string): number {
+function sumMods(node: ComponentNode | null, modKey: string, hpMap: Record<string, number>): number {
   if (!node) return 0;
+  const hp = hpMap[node.id];
+  if (hp !== undefined && hp <= 0) return 0;
   const comp = node.component as Record<string, unknown>;
   const val = typeof comp[modKey] === 'number' ? (comp[modKey] as number) : 0;
   let total = val;
   for (const child of node.children) {
-    if (child) total += sumMods(child, modKey);
+    if (child) total += sumMods(child, modKey, hpMap);
   }
   return total;
 }
@@ -94,15 +96,18 @@ interface HealthRowProps {
   healthMod: number;
   hpMap: Record<string, number>;
   onSetHp: (nodeId: string, value: number) => void;
+  ancestorDestroyed?: boolean;
 }
 
-function HealthRow({ node, conModifier, healthMod, hpMap, onSetHp }: HealthRowProps) {
+function HealthRow({ node, conModifier, healthMod, hpMap, onSetHp, ancestorDestroyed = false }: HealthRowProps) {
   const comp = node.component;
   const { lang } = useLang();
   const totalHp = useMemo(() => calcHp(conModifier, comp.healthDivisor, healthMod), [conModifier, comp.healthDivisor, healthMod]);
   const currentHp = hpMap[node.id] ?? totalHp;
+  const destroyed = currentHp <= 0;
   const over = currentHp > totalHp;
   const color = CAT_COLORS[comp.category] ?? '#888';
+  const grayed = ancestorDestroyed && !destroyed;
   const [deltaInput, setDeltaInput] = useState('');
 
   function applyDelta() {
@@ -119,11 +124,11 @@ function HealthRow({ node, conModifier, healthMod, hpMap, onSetHp }: HealthRowPr
   }
 
   return (
-    <div className="health-tree">
+    <div className={`health-tree ${grayed ? 'hr-grayed' : ''}`}>
       <div className={`health-row ${currentHp <= 0 ? 'hr-destroyed' : ''}`}>
         <span className="hr-name" title={localizedName(comp, lang)}>{localizedName(comp, lang) || 'Unnamed'}</span>
         <span className="hr-type">
-          <span className="hr-type-badge" style={{ background: color }}>{comp.category}</span>
+          <span className="hr-type-badge" style={{ background: grayed ? '#555' : color }}>{comp.category}</span>
         </span>
         <span className="hr-div">{comp.healthDivisor}</span>
         <span className="hr-current">
@@ -147,7 +152,7 @@ function HealthRow({ node, conModifier, healthMod, hpMap, onSetHp }: HealthRowPr
            {node.children.map((child, idx) =>
              child ? (
                <div key={idx} className="hr-slot-group">
-                 <HealthRow node={child} conModifier={conModifier} healthMod={healthMod} hpMap={hpMap} onSetHp={onSetHp} />
+                 <HealthRow node={child} conModifier={conModifier} healthMod={healthMod} hpMap={hpMap} onSetHp={onSetHp} ancestorDestroyed={ancestorDestroyed || destroyed} />
                </div>
              ) : null,
            )}
@@ -184,12 +189,12 @@ export function CharacterSheet({ mechRoot, scale = 'HG', scaleMods = {} }: Chara
   const totals = useMemo(() => {
     const t: Record<string, { mod: number; total: number }> = {};
     for (const s of MAIN_STATS) {
-      const mod = sumMods(mechRoot, s.modKey) + (currentScaleMods[s.modKey as keyof ScaleModifiers] as number ?? 0);
+      const mod = sumMods(mechRoot, s.modKey, hpMap) + (currentScaleMods[s.modKey as keyof ScaleModifiers] as number ?? 0);
       const base = bases[s.key] ?? 0;
       t[s.key] = { mod, total: base + mod };
     }
     return t;
-  }, [bases, mechRoot, scale, scaleMods]);
+  }, [bases, mechRoot, scale, scaleMods, hpMap]);
 
   function mainStatTotal(key: string): number {
     return totals[key]?.total ?? 0;
@@ -199,11 +204,11 @@ export function CharacterSheet({ mechRoot, scale = 'HG', scaleMods = {} }: Chara
     const d: Record<string, number> = {};
     for (const s of DERIVED_STATS) {
       const srcMod = s.from.reduce((acc, k) => acc + calcModifier(mainStatTotal(k)), 0);
-      const bonus = sumMods(mechRoot, s.modKey) + (currentScaleMods[s.modKey as keyof ScaleModifiers] as number ?? 0);
+      const bonus = sumMods(mechRoot, s.modKey, hpMap) + (currentScaleMods[s.modKey as keyof ScaleModifiers] as number ?? 0);
       d[s.key] = srcMod + bonus;
     }
     return d;
-  }, [mechRoot, currentScaleMods, totals]);
+  }, [mechRoot, currentScaleMods, totals, hpMap]);
 
   const conModifier = useMemo(() => calcModifier(totals.con?.total ?? 0), [totals]);
 
@@ -272,7 +277,7 @@ export function CharacterSheet({ mechRoot, scale = 'HG', scaleMods = {} }: Chara
             <div className="stats-divider" />
             {DERIVED_STATS.map(s => {
               const srcMod = s.from.reduce((acc, k) => acc + calcModifier(mainStatTotal(k)), 0);
-              const bonus = sumMods(mechRoot, s.modKey) + (currentScaleMods[s.modKey as keyof ScaleModifiers] as number ?? 0);
+              const bonus = sumMods(mechRoot, s.modKey, hpMap) + (currentScaleMods[s.modKey as keyof ScaleModifiers] as number ?? 0);
               const total = srcMod + bonus;
               return (
                 <div key={s.key} className="stats-row">
@@ -292,15 +297,15 @@ export function CharacterSheet({ mechRoot, scale = 'HG', scaleMods = {} }: Chara
               if (e.key === 'ac') {
                 const rendMod = calcModifier(derivedTotals['rend'] ?? 0);
                 const acroMod = calcModifier(derivedTotals['acro'] ?? 0);
-                const acMod = sumMods(mechRoot, 'acMod') + (currentScaleMods['acMod' as keyof ScaleModifiers] as number ?? 0);
+                const acMod = sumMods(mechRoot, 'acMod', hpMap) + (currentScaleMods['acMod' as keyof ScaleModifiers] as number ?? 0);
                 val = rendMod + acroMod + 13 + acMod;
               } else if (e.key === 'movement') {
                 const perfMod = derivedTotals['rend'] ?? 0;
                 const acroMod = derivedTotals['acro'] ?? 0;
-                const compMovement = sumMods(mechRoot, 'movement') + (currentScaleMods['movement' as keyof ScaleModifiers] as number ?? 0);
+                const compMovement = sumMods(mechRoot, 'movement', hpMap) + (currentScaleMods['movement' as keyof ScaleModifiers] as number ?? 0);
                 val = (perfMod + acroMod) * 5 + 30 + compMovement;
               } else {
-                val = sumMods(mechRoot, e.modKey) + (currentScaleMods[e.modKey as keyof ScaleModifiers] as number ?? 0);
+                val = sumMods(mechRoot, e.modKey, hpMap) + (currentScaleMods[e.modKey as keyof ScaleModifiers] as number ?? 0);
               }
               return (
                 <div key={e.key} className="stats-row">

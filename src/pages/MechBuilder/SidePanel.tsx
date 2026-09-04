@@ -28,6 +28,7 @@ const STATS_STORAGE_KEY = 'pham-mech-builder-stats';
 const ARCHETYPES_STORAGE_KEY = 'pham-mech-builder-archetypes';
 const SPEC_STORAGE_KEY = 'pham-mech-builder-spec';
 const MODEL_STORAGE_KEY = 'pham-mech-builder-model';
+const HP_STORAGE_KEY = 'pham-mech-builder-hp';
 
 type StatBases = Record<string, number>;
 
@@ -43,6 +44,15 @@ function loadBases(): StatBases {
     return raw ? { ...defaultBases(), ...JSON.parse(raw) } : defaultBases();
   } catch {
     return defaultBases();
+  }
+}
+
+function loadHpMap(): Record<string, number> {
+  try {
+    const raw = localStorage.getItem(HP_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
   }
 }
 
@@ -69,13 +79,15 @@ function loadModel(): string {
   try { return localStorage.getItem(MODEL_STORAGE_KEY) || 'Prototype'; } catch { return 'Prototype'; }
 }
 
-function sumMods(node: ComponentNode | null, modKey: string): number {
+function sumMods(node: ComponentNode | null, modKey: string, hpMap: Record<string, number>): number {
   if (!node) return 0;
+  const hp = hpMap[node.id];
+  if (hp !== undefined && hp <= 0) return 0;
   const comp = node.component as Record<string, unknown>;
   const val = typeof comp[modKey] === 'number' ? (comp[modKey] as number) : 0;
   let total = val;
   for (const child of node.children) {
-    if (child) total += sumMods(child, modKey);
+    if (child) total += sumMods(child, modKey, hpMap);
   }
   return total;
 }
@@ -106,6 +118,27 @@ export function SidePanel({ componentPoints = 0, mechRoot = null, scale, setScal
   const [selected, setSelected] = useState<Set<string>>(() => loadArchetypes(archetypes, lang));
   const [spec, setSpec] = useState<string | null>(() => loadSpec(archetypes, lang));
   const [model, setModel] = useState(() => loadModel());
+  const [hpMap, setHpMap] = useState<Record<string, number>>(loadHpMap);
+
+  useEffect(() => {
+    function onStorage() {
+      setHpMap(loadHpMap());
+    }
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const next = loadHpMap();
+      setHpMap(prev => {
+        const prevStr = JSON.stringify(prev);
+        const nextStr = JSON.stringify(next);
+        return prevStr === nextStr ? prev : next;
+      });
+    }, 500);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     localStorage.setItem(STATS_STORAGE_KEY, JSON.stringify(bases));
@@ -129,7 +162,7 @@ export function SidePanel({ componentPoints = 0, mechRoot = null, scale, setScal
   const totals = useMemo(() => {
     const t: Record<string, { mod: number; total: number }> = {};
     for (const s of MAIN_STATS) {
-      const mod = sumMods(mechRoot, s.key + 'Mod') + (currentScaleMods[s.key + 'Mod' as keyof ScaleModifiers] as number ?? 0);
+      const mod = sumMods(mechRoot, s.key + 'Mod', hpMap) + (currentScaleMods[s.key + 'Mod' as keyof ScaleModifiers] as number ?? 0);
       const base = bases[s.key] ?? 0;
       t[s.key] = { mod, total: base + mod };
     }
@@ -144,7 +177,7 @@ export function SidePanel({ componentPoints = 0, mechRoot = null, scale, setScal
     const d: Record<string, number> = {};
     for (const s of DERIVED_STATS) {
       const srcMod = s.from.reduce((acc, k) => acc + calcModifier(mainStatTotal(k)), 0);
-      const bonus = sumMods(mechRoot, s.modKey) + (currentScaleMods[s.modKey as keyof ScaleModifiers] as number ?? 0);
+      const bonus = sumMods(mechRoot, s.modKey, hpMap) + (currentScaleMods[s.modKey as keyof ScaleModifiers] as number ?? 0);
       d[s.key] = srcMod + bonus;
     }
     return d;
@@ -237,7 +270,7 @@ export function SidePanel({ componentPoints = 0, mechRoot = null, scale, setScal
           <div className="panel-stat-divider" />
           {DERIVED_STATS.map(s => {
             const srcMod = s.from.reduce((acc, k) => acc + calcModifier(mainStatTotal(k)), 0);
-            const bonus = sumMods(mechRoot, s.modKey) + (currentScaleMods[s.modKey as keyof ScaleModifiers] as number ?? 0);
+            const bonus = sumMods(mechRoot, s.modKey, hpMap) + (currentScaleMods[s.modKey as keyof ScaleModifiers] as number ?? 0);
             const total = srcMod + bonus;
             return (
               <div key={s.key} className="panel-stat-row">
@@ -264,15 +297,15 @@ export function SidePanel({ componentPoints = 0, mechRoot = null, scale, setScal
             if (e.key === 'ac') {
               const rendMod = calcModifier(derivedTotals['rend'] ?? 0);
               const acroMod = calcModifier(derivedTotals['acro'] ?? 0);
-              const acMod = sumMods(mechRoot, 'acMod') + (currentScaleMods['acMod' as keyof ScaleModifiers] as number ?? 0);
+              const acMod = sumMods(mechRoot, 'acMod', hpMap) + (currentScaleMods['acMod' as keyof ScaleModifiers] as number ?? 0);
               val = rendMod + acroMod + 13 + acMod;
             } else if (e.key === 'movement') {
               const perfMod = derivedTotals['rend'] ?? 0;
               const acroMod = derivedTotals['acro'] ?? 0;
-              const compMovement = sumMods(mechRoot, 'movement') + (currentScaleMods['movement' as keyof ScaleModifiers] as number ?? 0);
+              const compMovement = sumMods(mechRoot, 'movement', hpMap) + (currentScaleMods['movement' as keyof ScaleModifiers] as number ?? 0);
               val = (perfMod + acroMod) * 5 + 30 + compMovement;
             } else {
-              val = sumMods(mechRoot, e.modKey) + (currentScaleMods[e.modKey as keyof ScaleModifiers] as number ?? 0);
+              val = sumMods(mechRoot, e.modKey, hpMap) + (currentScaleMods[e.modKey as keyof ScaleModifiers] as number ?? 0);
             }
             return (
               <div key={e.key} className="panel-stat-row">
