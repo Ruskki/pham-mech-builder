@@ -272,6 +272,12 @@ export interface CompactNode {
 export interface StoredBuild {
   customs: PremadeData[];
   tree: CompactNode;
+  name?: string;
+  archetypes?: string[];
+  spec?: string;
+  model?: string;
+  scale?: string;
+  stats?: Record<string, number>;
 }
 
 export function buildPremadeLib(premade: Record<string, PremadeData[]>): Record<number, PremadeData> {

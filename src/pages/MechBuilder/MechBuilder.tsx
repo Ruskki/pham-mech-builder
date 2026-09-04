@@ -43,6 +43,7 @@ export function MechBuilder({ customComponents, mechRoot: rootNode, onMechRootCh
   const [statPointsOver, setStatPointsOver] = useState(0);
   const [statBelowMin, setStatBelowMin] = useState(0);
   const importRef = useRef<HTMLInputElement>(null);
+  const [reloadKey, setReloadKey] = useState(0);
   const { lang } = useLang();
 
   useEffect(() => {
@@ -61,7 +62,17 @@ export function MechBuilder({ customComponents, mechRoot: rootNode, onMechRootCh
       const found = customComponents.find(c => c.id === id);
       if (found) customs.push(found);
     }
-    const stored: StoredBuild = { customs, tree: compactTree(rootNode) };
+
+    const archArr: string[] = [];
+    try { const raw = localStorage.getItem('pham-mech-builder-archetypes'); if (raw) archArr.push(...JSON.parse(raw)); } catch {}
+    let specVal: string | undefined;
+    try { specVal = localStorage.getItem('pham-mech-builder-spec') ?? undefined; } catch {}
+    let modelVal: string | undefined;
+    try { modelVal = localStorage.getItem('pham-mech-builder-model') ?? undefined; } catch {}
+    let statsVal: Record<string, number> | undefined;
+    try { const raw = localStorage.getItem('pham-mech-builder-stats'); if (raw) statsVal = JSON.parse(raw); } catch {}
+
+    const stored: StoredBuild = { customs, tree: compactTree(rootNode), name: mechName, archetypes: archArr, spec: specVal, model: modelVal, scale, stats: statsVal };
     const blob = new Blob([JSON.stringify(stored, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -95,6 +106,21 @@ export function MechBuilder({ customComponents, mechRoot: rootNode, onMechRootCh
           }
           const expanded = expandTree(raw.tree, lib);
           if (expanded) setRootNode(expanded);
+          if (raw.name) setMechName(raw.name);
+          if (raw.scale) setScale(raw.scale as ScaleType);
+          if (Array.isArray(raw.archetypes)) {
+            try { localStorage.setItem('pham-mech-builder-archetypes', JSON.stringify(raw.archetypes)); } catch {}
+          }
+          if (raw.spec) {
+            try { localStorage.setItem('pham-mech-builder-spec', raw.spec); } catch {}
+          }
+          if (raw.model) {
+            try { localStorage.setItem('pham-mech-builder-model', raw.model); } catch {}
+          }
+          if (raw.stats) {
+            try { localStorage.setItem('pham-mech-builder-stats', JSON.stringify(raw.stats)); } catch {}
+          }
+          setReloadKey(k => k + 1);
         }
       } catch { /* ignore */ }
     };
@@ -222,7 +248,7 @@ export function MechBuilder({ customComponents, mechRoot: rootNode, onMechRootCh
           </div>
         </main>
 
-        <SidePanel componentPoints={componentPoints} mechRoot={rootNode} scale={scale} setScale={setScale} scaleMods={scaleMods} setScaleMods={setScaleMods} archetypes={archetypes} models={models} onTotalChange={setTotalPoints} statMin={statMin} maxStatPoints={maxStatPoints} onStatPointsChange={setStatPointsOver} onStatBelowMinChange={setStatBelowMin} />
+        <SidePanel key={reloadKey} componentPoints={componentPoints} mechRoot={rootNode} scale={scale} setScale={setScale} scaleMods={scaleMods} setScaleMods={setScaleMods} archetypes={archetypes} models={models} onTotalChange={setTotalPoints} statMin={statMin} maxStatPoints={maxStatPoints} onStatPointsChange={setStatPointsOver} onStatBelowMinChange={setStatBelowMin} />
       </div>
 
       {pickingTarget && (
